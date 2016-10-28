@@ -22,6 +22,7 @@ buildscript {
 apply plugin: 'com.nablarch.dev.nablarch-build'
 apply plugin: 'com.nablarch.dev.nablarch-maven-deploy'
 apply plugin: 'com.nablarch.dev.nablarch-sonarqube'
+apply plugin: 'com.nablarch.dev.nablarch-version'
 apply from: "cobertura-0.0.1.gradle"
 
 // ビルド時のJavaバージョンを指定する
@@ -29,8 +30,8 @@ sourceCompatibility=JavaVersion.VERSION_1_6
 targetCompatibility=JavaVersion.VERSION_1_6
 
 dependencies {
-  compile 'com.nablarch.framework:nablarch-fw-web:1.2.2'
-  compile 'com.nablarch.framework:nablarch-core:1.2.2'
+  compile "com.nablarch.framework:nablarch-fw-web:${nablarchFwWebVersion}"
+  compile "com.nablarch.framework:nablarch-core:${nablarchCoreVersion}"
 
   compile 'net.unit8:http-request-router:0.1.0'
 
@@ -41,5 +42,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.11'
+  gradleVersion = '2.13'
 }
