@@ -41,6 +41,10 @@ dependencies {
   testCompile 'junit:junit:4.12'
 }
 
+tasks.sonarRunner {
+  dependsOn = ['coverage']
+}
+
 task wrapper(type: Wrapper) {
   gradleVersion = '2.13'
 }
