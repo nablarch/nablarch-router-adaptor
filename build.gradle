@@ -37,7 +37,7 @@ dependencies {
 
 
   testCompile 'javax.servlet:servlet-api:2.5'
-  testCompile 'org.jmockit:jmockit:1.19'
+  testCompile 'org.jmockit:jmockit:1.35'
   testCompile 'junit:junit:4.12'
 }
 

@@ -5,7 +5,6 @@ import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.util.FileUtil;
@@ -327,7 +326,7 @@ public class RoutesMappingTest {
     @Test
     public void customMethodBinderFactory() throws Exception {
 
-        new NonStrictExpectations() {{
+        new Expectations() {{
             request.getRequestPath();
             result = "/method";
             request.getMethod();
