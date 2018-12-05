@@ -21,23 +21,10 @@
   
   <profiles>
     <profile>
-      <id>java11</id>
+      <id>java9</id>
       <properties>
-        <jmockit.version>1.43</jmockit.version>
-        <junit.additionalArgLine>-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar</junit.additionalArgLine>
+        <junit.additionalArgLine>--add-modules java.activation</junit.additionalArgLine>
       </properties>
-      <dependencies>
-        <dependency>
-          <groupId>javax.activation</groupId>
-          <artifactId>javax.activation-api</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.activation</groupId>
-          <artifactId>javax.activation</artifactId>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
     </profile>
   </profiles>
 
