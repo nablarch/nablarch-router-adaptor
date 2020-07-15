@@ -35,12 +35,13 @@ public class JaxRsResourceFinder {
     }
 
     private static class ResourceClassHandler implements ClassHandler {
-        private List<JaxRsResource> jaxRsResourceList = new ArrayList<JaxRsResource>();
+        private final ClassLoader classLoader = this.getClass().getClassLoader();
+        private final List<JaxRsResource> jaxRsResourceList = new ArrayList<JaxRsResource>();
 
         @Override
         public void process(String packageName, String className) {
             try {
-                Class<?> clazz = this.getClass().getClassLoader().loadClass(packageName + "." + className);
+                Class<?> clazz = classLoader.loadClass(packageName + "." + className);
 
                 if (isJaxRsResource(clazz)) {
                     List<Method> resourceMethodList = findResourceMethods(clazz);
