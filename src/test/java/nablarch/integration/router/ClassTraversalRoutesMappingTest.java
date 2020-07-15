@@ -2,6 +2,7 @@ package nablarch.integration.router;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import nablarch.core.util.StringUtil;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.jaxrs.JaxRsMethodBinderFactory;
@@ -11,6 +12,7 @@ import nablarch.fw.web.servlet.HttpRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import nablarch.integration.jaxrs.jersey.JerseyJaxRsHandlerListFactory;
 import nablarch.integration.router.jaxrs.JaxRsOptionsCollector;
+import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testPathParameter.PathParameterAction;
 import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting.SimpleAction;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -157,6 +159,27 @@ public class ClassTraversalRoutesMappingTest {
         } finally {
             System.setOut(originalStdOut);
         }
+    }
+    
+    @Test
+    public void testPathParameter() throws Exception {
+        new Expectations() {{
+            request.getMethod(); result = "GET";
+            request.getRequestPath(); result = "/test/path-param/123/get/hello";
+        }};
+
+        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testPathParameter");
+        sut.initialize();
+        final Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
+        executionContext.addHandler(handlerClass.getConstructor().newInstance());
+        executionContext.handleNext(request);
+        
+        new Verifications() {{
+            request.setParam("param1", "123"); times = 1;
+            request.setParam("param2", "hello"); times = 1;
+            request.setParam("controller", (String[])any); times = 0;
+            request.setParam("action", (String[])any); times = 0;
+        }};
     }
 
     private static class MockHttpServletRequest extends HttpServletRequestWrapper {

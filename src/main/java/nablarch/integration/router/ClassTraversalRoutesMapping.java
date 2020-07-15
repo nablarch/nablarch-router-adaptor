@@ -39,8 +39,11 @@ public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implement
 
             executionContext.setMethodBinder(methodBinderFactory.create((String) options.get("action")));
 
-            for (Map.Entry<String, Object> option : options.entrySet()) {
-                request.setParam(option.getKey(), option.getValue().toString());
+            Options params = options.except("controller", "action");
+            for (Map.Entry<String, Object> option : params.entrySet()) {
+                if (option.getValue() != null) {
+                    request.setParam(option.getKey(), option.getValue().toString());
+                }
             }
 
             return Thread.currentThread().getContextClassLoader().loadClass((String) options.get("controller"));
