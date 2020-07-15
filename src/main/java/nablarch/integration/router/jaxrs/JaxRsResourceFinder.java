@@ -28,7 +28,11 @@ public class JaxRsResourceFinder {
         ResourceClassHandler resourceClassHandler = new ResourceClassHandler();
 
         for (Resources resourcesType : ResourcesUtil.getResourcesTypes(basePackage)) {
-            resourcesType.forEach(resourceClassHandler);
+            try {
+                resourcesType.forEach(resourceClassHandler);
+            } finally {
+                resourcesType.close();
+            }
         }
 
         return resourceClassHandler.getJaxRsResourceList();
