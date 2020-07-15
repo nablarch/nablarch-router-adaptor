@@ -13,11 +13,6 @@ import java.util.List;
  */
 public class JaxRsOptionsCollector implements ClassTraversalOptionsCollector {
     private String applicationPath;
-    private JaxRsResourceFinder jaxRsResourceFinder;
-    
-    public JaxRsOptionsCollector() {
-        setJaxRsResourceFinder(new JaxRsResourceFinder());
-    }
     
     @Override
     public List<PathOptions> collect(String basePackage) {
@@ -25,23 +20,16 @@ public class JaxRsOptionsCollector implements ClassTraversalOptionsCollector {
             throw new IllegalStateException("applicationPath is not set.");
         }
 
+        JaxRsResourceFinder resourceFinder = new JaxRsResourceFinder();
         JaxRsRouterConverter pathStringParser = new JaxRsRouterConverter(applicationPath);
         
         List<PathOptions> pathOptionsList = new ArrayList<PathOptions>();
         
-        for (JaxRsResource jaxRsResource : jaxRsResourceFinder.find(basePackage)) {
+        for (JaxRsResource jaxRsResource : resourceFinder.find(basePackage)) {
             pathOptionsList.addAll(pathStringParser.parse(jaxRsResource));
         }
         
         return pathOptionsList;
-    }
-
-    /**
-     * {@link JaxRsResourceFinder} を設定する。
-     * @param jaxRsResourceFinder {@link JaxRsResourceFinder}
-     */
-    public void setJaxRsResourceFinder(JaxRsResourceFinder jaxRsResourceFinder) {
-        this.jaxRsResourceFinder = jaxRsResourceFinder;
     }
 
     /**

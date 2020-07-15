@@ -17,11 +17,6 @@ import java.util.List;
  * @author Tanaka Tomoyuki
  */
 public class JaxRsResourceFinder {
-    private ResourceClassHandler resourceClassHandler;
-    
-    public JaxRsResourceFinder() {
-        setResourceClassHandler(new DefaultResourceClassHandler());
-    }
 
     /**
      * 指定されたパッケージ配下を検索し、{@link javax.ws.rs.Path} アノテーションが設定された
@@ -30,6 +25,8 @@ public class JaxRsResourceFinder {
      * @return 検索結果
      */
     public List<JaxRsResource> find(String basePackage) {
+        ResourceClassHandler resourceClassHandler = new ResourceClassHandler();
+
         for (Resources resourcesType : ResourcesUtil.getResourcesTypes(basePackage)) {
             try {
                 resourcesType.forEach(resourceClassHandler);
@@ -41,27 +38,7 @@ public class JaxRsResourceFinder {
         return resourceClassHandler.getJaxRsResourceList();
     }
 
-    /**
-     * {@link ResourceClassHandler} を設定する。
-     * @param resourceClassHandler {@link ResourceClassHandler}
-     */
-    public void setResourceClassHandler(ResourceClassHandler resourceClassHandler) {
-        this.resourceClassHandler = resourceClassHandler;
-    }
-
-    /**
-     * クラスをトラバースしながら JAX-RS のリソースクラスを収集する {@link ClassHandler}。
-     */
-    public interface ResourceClassHandler extends ClassHandler {
-
-        /**
-         * 収集したリソースクラスの情報をリストで取得する。
-         * @return 収集したリソースクラスのリスト
-         */
-        List<JaxRsResource> getJaxRsResourceList();
-    }
-
-    private static class DefaultResourceClassHandler implements ResourceClassHandler {
+    private static class ResourceClassHandler implements ClassHandler {
         private final ClassLoader classLoader = this.getClass().getClassLoader();
         private final List<JaxRsResource> jaxRsResourceList = new ArrayList<JaxRsResource>();
 
@@ -108,8 +85,7 @@ public class JaxRsResourceFinder {
             }
         }
 
-        @Override
-        public List<JaxRsResource> getJaxRsResourceList() {
+        private List<JaxRsResource> getJaxRsResourceList() {
             return jaxRsResourceList;
         }
     }
