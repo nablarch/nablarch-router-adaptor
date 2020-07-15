@@ -21,7 +21,7 @@ public class JaxRsOptionsCollector implements ClassTraversalOptionsCollector {
         }
 
         JaxRsResourceFinder resourceFinder = new JaxRsResourceFinder();
-        JaxRsPathStringParser pathStringParser = new JaxRsPathStringParser(applicationPath);
+        JaxRsRouterConverter pathStringParser = new JaxRsRouterConverter(applicationPath);
         
         List<PathOptions> pathOptionsList = new ArrayList<PathOptions>();
         

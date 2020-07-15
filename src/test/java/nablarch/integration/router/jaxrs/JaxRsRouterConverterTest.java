@@ -1,6 +1,7 @@
 package nablarch.integration.router.jaxrs;
 
 import nablarch.integration.router.PathOptions;
+import net.unit8.http.router.Options;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -12,17 +13,16 @@ import javax.ws.rs.Path;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /**
- * {@link JaxRsPathStringParser} のテスト。
+ * {@link JaxRsRouterConverter} のテスト。
  *
  * @author Tanaka Tomoyuki
  */
-public class JaxRsPathStringParserTest {
+public class JaxRsRouterConverterTest {
     @Test
     public void testPathAnnotatedOnlyClass() {
         @Path("test-resource")
@@ -31,7 +31,7 @@ public class JaxRsPathStringParserTest {
             void get() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
 
@@ -47,7 +47,7 @@ public class JaxRsPathStringParserTest {
             void get() {}
         }
         
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
 
@@ -63,7 +63,7 @@ public class JaxRsPathStringParserTest {
             void get() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("/test/");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("/test/");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
 
@@ -78,7 +78,7 @@ public class JaxRsPathStringParserTest {
             void get() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
 
@@ -95,7 +95,7 @@ public class JaxRsPathStringParserTest {
             void getMethod() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "getMethod"));
 
@@ -112,61 +112,13 @@ public class JaxRsPathStringParserTest {
             void getMethod() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "getMethod"));
 
         assertThat(pathOptionsList, contains(
             hasProperty("options",
                 hasEntry(is("conditions"), hasEntry("method", "GET"))
-            )
-        ));
-    }
-
-    @Test
-    public void testPathParameterConverted() {
-        @Path("test-resource/{param1}")
-        class TestResource {
-            @GET
-            @Path("/get/{ param2 }/fizz")
-            void get() {}
-        }
-
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
-
-        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
-
-        assertThat(pathOptionsList, contains(hasProperty("path", is("test/test-resource/(:param1)/get/(:param2)/fizz"))));
-    }
-
-    @Test
-    public void testPathParameterHasRegularExpression() {
-        @Path("test-resource/{param1:\\d+}")
-        class TestResource {
-            @GET
-            @Path("/get/{ param2 : [a-zA-Z{} ]+ }/fizz")
-            void get() {}
-        }
-
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
-
-        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
-
-        assertThat(pathOptionsList, contains(
-            allOf(
-                hasProperty("path", is("test/test-resource/(:param1)/get/(:param2)/fizz")),
-                hasProperty("options",
-                    hasEntry(is("requirements"),
-                        allOf(
-                            hasEntry(
-                                is("param1"), allOf(hasToString("\\d+"), instanceOf(Pattern.class))
-                            ),
-                            hasEntry(
-                                is("param2"), allOf(hasToString("[a-zA-Z{} ]+"), instanceOf(Pattern.class))
-                            )
-                        )
-                    )
-                )
             )
         ));
     }
@@ -188,7 +140,7 @@ public class JaxRsPathStringParserTest {
             void put() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get", "post", "put"));
 
@@ -197,6 +149,29 @@ public class JaxRsPathStringParserTest {
             hasProperty("path", is("test/test-resource/post-method")),
             hasProperty("path", is("test/test-resource/put-method"))
         ));
+    }
+    
+    @Test
+    public void testRequirementsIsPathParserResult() {
+        @Path("test-resource")
+        class TestResource {
+            @GET
+            void get() {}
+        }
+
+        final PathRequirements mockPathRequirements = new PathRequirements("mock", Options.newInstance());
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
+        sut.setJaxRsPathParser(new JaxRsPathParser() {
+            @Override
+            public PathRequirements parse(String jaxRsPath) {
+                return mockPathRequirements;
+            }
+        });
+        
+        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
+
+        Options requirements = (Options)pathOptionsList.get(0).getOptions().get("requirements");
+        assertThat(requirements, sameInstance(mockPathRequirements.getRequirements()));
     }
     
     @Rule
@@ -209,45 +184,11 @@ public class JaxRsPathStringParserTest {
             void get() {}
         }
 
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("'get' method has no HttpMethod annotation.");
 
-        sut.parse(jaxRsResource(TestResource.class, "get"));
-    }
-
-    @Test
-    public void testThrowsExceptionIfParameterSegmentHasNoEndBrackets() {
-        @Path("test-resource")
-        class TestResource {
-            @GET
-            @Path("foo/{param1/bar")
-            void get() {}
-        }
-
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
-
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Parameter segment has no end brackets. (parameterName='param1/bar')");
-        
-        sut.parse(jaxRsResource(TestResource.class, "get"));
-    }
-
-    @Test
-    public void testThrowsExceptionIfParameterSegmentWithRegexpHasNoEndBrackets() {
-        @Path("test-resource")
-        class TestResource {
-            @GET
-            @Path("foo/{param1: [a-z]+ /bar")
-            void get() {}
-        }
-
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
-
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Parameter segment has no end brackets. (regexp='[a-z]+ /bar')");
-        
         sut.parse(jaxRsResource(TestResource.class, "get"));
     }
 
