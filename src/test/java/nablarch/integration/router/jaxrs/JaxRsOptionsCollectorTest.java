@@ -52,7 +52,7 @@ public class JaxRsOptionsCollectorTest {
                 hasProperty("options",
                     allOf(
                         hasEntry("controller", BarResource.class.getName()),
-                        hasEntry("action", "get")
+                        hasEntry("action", "post")
                     )
                 )
             )

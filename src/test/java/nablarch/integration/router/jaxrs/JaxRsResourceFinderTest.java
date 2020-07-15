@@ -42,7 +42,6 @@ public class JaxRsResourceFinderTest {
 
         assertThat(jaxRsResourceList, containsInAnyOrder(
             hasProperty("resourceClass", equalTo(ClassIsAnnotatedByPath.class)),
-            hasProperty("resourceClass", equalTo(MethodIsAnnotatedByPath.class)),
             hasProperty("resourceClass", equalTo(ClassAndMethodAreAnnotatedByPath.class)),
             hasProperty("resourceClass", equalTo(ResourceInSubPackage.class))
         ));

@@ -52,17 +52,7 @@ public class JaxRsResourceFinder {
         }
 
         private boolean isJaxRsResource(Class<?> clazz) {
-            if (clazz.isAnnotationPresent(Path.class)) {
-                return true;
-            }
-
-            for (Method method : clazz.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(Path.class)) {
-                    return true;
-                }
-            }
-
-            return false;
+            return clazz.isAnnotationPresent(Path.class);
         }
 
         private List<Method> findResourceMethods(Class<?> clazz) {

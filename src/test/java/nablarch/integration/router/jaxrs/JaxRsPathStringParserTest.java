@@ -55,21 +55,6 @@ public class JaxRsPathStringParserTest {
     }
 
     @Test
-    public void testPathAnnotatedOnlyMethod() {
-        class TestResource {
-            @GET
-            @Path("get-method")
-            void get() {}
-        }
-
-        JaxRsPathStringParser sut = new JaxRsPathStringParser("test");
-
-        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get"));
-
-        assertThat(pathOptionsList, contains(hasProperty("path", is("test/get-method"))));
-    }
-
-    @Test
     public void testPathWhenExistsSeparatorsEachPathValues() {
         @Path("/test-resource/")
         class TestResource {

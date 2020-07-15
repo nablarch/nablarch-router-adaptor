@@ -1,11 +1,11 @@
 package nablarch.integration.router.jaxrs.test.JaxRsOptionsCollectorTest.bar;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+@Path("bar")
 public class BarResource {
     
-    @GET
-    @Path("bar")
-    public void get() {}
+    @POST
+    public void post() {}
 }
