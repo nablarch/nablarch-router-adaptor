@@ -92,4 +92,12 @@ public class JaxRsResourceFinderTest {
             });
         }
     }
+    
+    @Test
+    public void testThrowsExceptionIfHttpMethodAnnotationIsDuplicate() {
+        exception.expect(RuntimeException.class);
+        exception.expectMessage("'get' method has multiple HTTP method annotations.");
+        
+        sut.find("nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testThrowsExceptionIfHttpMethodAnnotationIsDuplicate");
+    }
 }

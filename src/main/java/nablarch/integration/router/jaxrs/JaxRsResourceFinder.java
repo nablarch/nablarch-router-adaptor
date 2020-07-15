@@ -71,12 +71,18 @@ public class JaxRsResourceFinder {
         }
 
         private boolean isAnnotatedByHttpMethod(Method method) {
+            int httpMethodAnnotationCount = 0;
             for (Annotation annotation : method.getDeclaredAnnotations()) {
                 if (annotation.annotationType().isAnnotationPresent(HttpMethod.class)) {
-                    return true;
+                    httpMethodAnnotationCount++;
                 }
             }
-            return false;
+            
+            if (2 <= httpMethodAnnotationCount) {
+                throw new RuntimeException("'" + method.getName() + "' method has multiple HTTP method annotations.");
+            } else {
+                return httpMethodAnnotationCount == 1;
+            }
         }
 
         private List<JaxRsResource> getJaxRsResourceList() {
