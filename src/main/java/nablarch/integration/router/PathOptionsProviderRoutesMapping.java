@@ -18,17 +18,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 指定されたパッケージ配下のクラスを探索してActionメソッドを特定するハンドラ。
- *
+ * {@link PathOptionsProvider} から取得したルーティング定義をベースにActionメソッドを特定するハンドラ。
+ * 
  * @author Tanaka Tomoyuki
  */
-public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implements Initializable {
-    private static final Logger LOGGER = LoggerManager.get(ClassTraversalRoutesMapping.class);
+public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport implements Initializable {
+    private static final Logger LOGGER = LoggerManager.get(PathOptionsProviderRoutesMapping.class);
 
     private final RouteSet routeSet = new RouteSet();
     private String baseUri = "";
-    private String basePackage = "";
-    private ClassTraversalOptionsCollector optionsCollector;
+    private PathOptionsProvider pathOptionsProvider;
     private PathOptionsFormatter pathOptionsFormatter = new SimplePathOptionsFormatter();
 
     @Override
@@ -65,11 +64,11 @@ public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implement
 
     @Override
     public void initialize() {
-        if (optionsCollector == null) {
-            throw new IllegalStateException("optionsCollector is not set.");
+        if (pathOptionsProvider == null) {
+            throw new IllegalStateException("pathOptionsProvider is not set.");
         }
 
-        List<PathOptions> pathOptionsList = optionsCollector.collect(basePackage);
+        List<PathOptions> pathOptionsList = pathOptionsProvider.provide();
 
         for (PathOptions pathOptions : pathOptionsList) {
             routeSet.addRoute(pathOptions.getPath() , pathOptions.getOptions());
@@ -97,19 +96,11 @@ public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implement
     }
 
     /**
-     * 探索のベースとなるパッケージを設定する。
-     * @param basePackage 探索のベースとなるパッケージ
+     * {@link PathOptionsProvider} を設定する。
+     * @param pathOptionsProvider {@link PathOptionsProvider}
      */
-    public void setBasePackage(String basePackage) {
-        this.basePackage = basePackage;
-    }
-
-    /**
-     * {@link ClassTraversalOptionsCollector} を設定する。
-     * @param optionsCollector {@link ClassTraversalOptionsCollector}
-     */
-    public void setOptionsCollector(ClassTraversalOptionsCollector optionsCollector) {
-        this.optionsCollector = optionsCollector;
+    public void setPathOptionsProvider(PathOptionsProvider pathOptionsProvider) {
+        this.pathOptionsProvider = pathOptionsProvider;
     }
 
     /**

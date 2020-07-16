@@ -5,15 +5,12 @@ import mockit.Mocked;
 import mockit.Verifications;
 import nablarch.core.util.StringUtil;
 import nablarch.fw.ExecutionContext;
-import nablarch.fw.jaxrs.JaxRsMethodBinderFactory;
 import nablarch.fw.web.HttpErrorResponse;
-import nablarch.fw.web.HttpResponse;
 import nablarch.fw.web.servlet.HttpRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
-import nablarch.integration.jaxrs.jersey.JerseyJaxRsHandlerListFactory;
-import nablarch.integration.router.jaxrs.JaxRsOptionsCollector;
-import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testNotServletExecutionContext.FooAction;
-import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting.SimpleAction;
+import nablarch.integration.router.test.PathOptionsProviderRoutesMappingTest.testNotServletExecutionContext.FooAction;
+import nablarch.integration.router.test.PathOptionsProviderRoutesMappingTest.testPathParameter.PathParameterAction;
+import nablarch.integration.router.test.PathOptionsProviderRoutesMappingTest.testSimpleRouting.SimpleAction;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,15 +27,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static nablarch.integration.router.PathOptionsFactory.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /**
- * {@link ClassTraversalOptionsCollector} のテスト。
+ * {@link PathOptionsProvider} のテスト。
  *
  * @author Tanaka Tomoyuki
  */
-public class ClassTraversalRoutesMappingTest {
+public class PathOptionsProviderRoutesMappingTest {
     @Mocked
     private HttpRequestWrapper request;
     @Mocked
@@ -47,29 +45,28 @@ public class ClassTraversalRoutesMappingTest {
     @Rule
     public ExpectedException exception = ExpectedException.none();
     
-    private ClassTraversalRoutesMapping sut;
+    private PathOptionsProviderRoutesMapping sut;
+    private MockPathOptionsProvider pathOptionsProvider;
     private ExecutionContext executionContext;
     
     @Before
     public void setUp() {
         executionContext = new ServletExecutionContext(new MockHttpServletRequest(servletRequest), null, null);
 
-        sut = new ClassTraversalRoutesMapping();
+        sut = new PathOptionsProviderRoutesMapping();
         
-        JaxRsOptionsCollector jaxRsOptionsCollector = new JaxRsOptionsCollector();
-        jaxRsOptionsCollector.setApplicationPath("test");
-        sut.setOptionsCollector(jaxRsOptionsCollector);
-
-        JaxRsMethodBinderFactory methodBinderFactory = new JaxRsMethodBinderFactory();
-        methodBinderFactory.setHandlerList(new JerseyJaxRsHandlerListFactory().createObject());
-        sut.setMethodBinderFactory(methodBinderFactory);
+        sut.setMethodBinderFactory(new RoutesMethodBinderFactory());
+        
+        pathOptionsProvider = new MockPathOptionsProvider();
+        sut.setPathOptionsProvider(pathOptionsProvider);
     }
 
     @Test
-    public void testThrowsExceptionIfOptionsCollectorIsNotSetWhenInitializing() {
+    public void testThrowsExceptionIfOptionsProviderIsNotSetWhenInitializing() {
         exception.expect(IllegalStateException.class);
-        exception.expectMessage("optionsCollector is not set.");
-        sut.setOptionsCollector(null);
+        exception.expectMessage("pathOptionsProvider is not set.");
+        sut.setPathOptionsProvider(null);
+        
         sut.initialize();
     }
 
@@ -80,19 +77,18 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/test/foo";
         }};
 
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testNotServletExecutionContext");
+        ExecutionContext plainExecutionContext = new ExecutionContext();
+        pathOptionsProvider.add(pathOptions("GET", "/test/foo", FooAction.class, "get"));
+        
         sut.initialize();
 
-        ExecutionContext plainExecutionContext = new ExecutionContext();
         Class<?> handlerClass = sut.getHandlerClass(request, plainExecutionContext);
-        
         assertThat(handlerClass, Matchers.<Class<?>>sameInstance(FooAction.class));
 
         plainExecutionContext.addHandler(new FooAction());
-        final HttpResponse response = plainExecutionContext.handleNext(request);
-        assertThat(response.getBodyString(), is("[\"FooAction\",\"get() method\",\"invoked\"]"));
+        assertThat((String)plainExecutionContext.handleNext(request), is("FooAction#get() method is invoked"));
     }
-
+    
     @Test
     public void testSimpleRouting() throws Exception {
         new Expectations() {{
@@ -100,16 +96,17 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/test/simple";
         }};
 
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
+        pathOptionsProvider
+            .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
+            .add(pathOptions("POST", "/test/simple", SimpleAction.class, "post"));
+        
         sut.initialize();
 
         Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
-        
         assertThat(handlerClass, Matchers.<Class<?>>sameInstance(SimpleAction.class));
         
         executionContext.addHandler(new SimpleAction());
-        final HttpResponse response = executionContext.handleNext(request);
-        assertThat(response.getBodyString(), is("[\"SimpleAction\",\"get() method\",\"invoked\"]"));
+        assertThat((String)executionContext.handleNext(request), is("SimpleAction#get() method is invoked"));
     }
     
     @Test
@@ -119,7 +116,9 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/test/simple";
         }};
 
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
+        pathOptionsProvider
+            .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
+            .add(pathOptions("POST", "/test/simple", SimpleAction.class, "post"));
         sut.initialize();
 
         exception.expect(HttpErrorResponse.class);
@@ -139,17 +138,18 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/base-uri/test/simple";
         }};
 
+        pathOptionsProvider
+            .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
+            .add(pathOptions("POST", "/test/simple", SimpleAction.class, "post"));
         sut.setBaseUri("/base-uri");
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
+        
         sut.initialize();
 
         Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
-
         assertThat(handlerClass, Matchers.<Class<?>>sameInstance(SimpleAction.class));
 
         executionContext.addHandler(new SimpleAction());
-        final HttpResponse response = executionContext.handleNext(request);
-        assertThat(response.getBodyString(), is("[\"SimpleAction\",\"post() method\",\"invoked\"]"));
+        assertThat((String)executionContext.handleNext(request), is("SimpleAction#post() method is invoked"));
     }
 
     @Test
@@ -159,17 +159,18 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/base-uri/test/simple";
         }};
 
+        pathOptionsProvider
+            .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
+            .add(pathOptions("POST", "/test/simple", SimpleAction.class, "post"));
         sut.setBaseUri("/base-uri/");
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
+        
         sut.initialize();
 
         Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
-
         assertThat(handlerClass, Matchers.<Class<?>>sameInstance(SimpleAction.class));
 
         executionContext.addHandler(new SimpleAction());
-        final HttpResponse response = executionContext.handleNext(request);
-        assertThat(response.getBodyString(), is("[\"SimpleAction\",\"post() method\",\"invoked\"]"));
+        assertThat((String)executionContext.handleNext(request), is("SimpleAction#post() method is invoked"));
     }
 
     @Test
@@ -179,7 +180,10 @@ public class ClassTraversalRoutesMappingTest {
             ByteArrayOutputStream onMemoryOut = new ByteArrayOutputStream();
             System.setOut(new PrintStream(onMemoryOut, true, "UTF-8"));
 
-            sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testRoutingLog");
+            pathOptionsProvider
+                .add(pathOptions("GET", "test/log-test/ccc", "Unused", "unused"))
+                .add(pathOptions("POST", "test/log-test/aaa/(:param2)", "Unused", "unused"))
+                .add(pathOptions("PUT", "test/log-test/bbb/(:param1)", "Unused", "unused"));
             sut.setPathOptionsFormatter(new PathOptionsFormatter() {
                 @Override
                 public String format(List<PathOptions> pathOptionsList) {
@@ -196,7 +200,6 @@ public class ClassTraversalRoutesMappingTest {
             sut.initialize();
 
             String logText = new String(onMemoryOut.toByteArray(), "UTF-8");
-
             assertThat(logText, containsString("test/log-test/aaa/(:param2), test/log-test/bbb/(:param1), test/log-test/ccc"));
         } finally {
             System.setOut(originalStdOut);
@@ -210,11 +213,10 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/test/path-param/123/get/hello";
         }};
 
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testPathParameter");
+        pathOptionsProvider.add(pathOptions("GET", "/test/path-param/(:param1)/get/(:param2)", PathParameterAction.class, "get"));
         sut.initialize();
-        final Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
-        executionContext.addHandler(handlerClass.getConstructor().newInstance());
-        executionContext.handleNext(request);
+        
+        sut.getHandlerClass(request, executionContext);
         
         new Verifications() {{
             request.setParam("param1", "123"); times = 1;
@@ -224,10 +226,24 @@ public class ClassTraversalRoutesMappingTest {
         }};
     }
 
+    private static class MockPathOptionsProvider implements PathOptionsProvider {
+        private List<PathOptions> pathOptionsList = new ArrayList<PathOptions>();
+
+        private MockPathOptionsProvider add(PathOptions pathOptions) {
+            pathOptionsList.add(pathOptions);
+            return this;
+        }
+
+        @Override
+        public List<PathOptions> provide() {
+            return pathOptionsList;
+        }
+    }
+
     private static class MockHttpServletRequest extends HttpServletRequestWrapper {
         private Map<String, Object> requestMap = new HashMap<String, Object>();
 
-        public MockHttpServletRequest(HttpServletRequest request) {
+        private MockHttpServletRequest(HttpServletRequest request) {
             super(request);
         }
 

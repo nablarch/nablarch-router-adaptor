@@ -1,8 +1,8 @@
 package nablarch.integration.router.jaxrs;
 
 import nablarch.integration.router.PathOptions;
-import nablarch.integration.router.jaxrs.test.JaxRsOptionsCollectorTest.FooResource;
-import nablarch.integration.router.jaxrs.test.JaxRsOptionsCollectorTest.bar.BarResource;
+import nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.FooResource;
+import nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.bar.BarResource;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -13,11 +13,11 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
- * {@link JaxRsOptionsCollector} のテスト。
+ * {@link JaxRsPathOptionsProvider} のテスト。
  * 
  * @author Tanaka Tomoyuki
  */
-public class JaxRsOptionsCollectorTest {
+public class JaxRsPathOptionsProviderTest {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -26,16 +26,28 @@ public class JaxRsOptionsCollectorTest {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("applicationPath is not set.");
 
-        JaxRsOptionsCollector sut = new JaxRsOptionsCollector();
-        sut.collect("test");
+        JaxRsPathOptionsProvider sut = new JaxRsPathOptionsProvider();
+        sut.setBasePackage("test");
+        sut.provide();
+    }
+
+    @Test
+    public void testThrowsExceptionIfBasePackageIsNull() {
+        exception.expect(IllegalStateException.class);
+        exception.expectMessage("basePackage is not set.");
+
+        JaxRsPathOptionsProvider sut = new JaxRsPathOptionsProvider();
+        sut.setApplicationPath("test");
+        sut.provide();
     }
     
     @Test
-    public void testCollect() {
-        JaxRsOptionsCollector sut = new JaxRsOptionsCollector();
+    public void testProvide() {
+        JaxRsPathOptionsProvider sut = new JaxRsPathOptionsProvider();
         sut.setApplicationPath("test");
+        sut.setBasePackage("nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest");
         
-        List<PathOptions> pathOptionsList = sut.collect("nablarch.integration.router.jaxrs.test.JaxRsOptionsCollectorTest");
+        List<PathOptions> pathOptionsList = sut.provide();
         
         assertThat(pathOptionsList, containsInAnyOrder(
             allOf(
