@@ -153,6 +153,26 @@ public class ClassTraversalRoutesMappingTest {
     }
 
     @Test
+    public void testBaseUriEndsWithSlash() throws Exception {
+        new Expectations() {{
+            request.getMethod(); result = "POST";
+            request.getRequestPath(); result = "/base-uri/test/simple";
+        }};
+
+        sut.setBaseUri("/base-uri/");
+        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
+        sut.initialize();
+
+        Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
+
+        assertThat(handlerClass, Matchers.<Class<?>>sameInstance(SimpleAction.class));
+
+        executionContext.addHandler(new SimpleAction());
+        final HttpResponse response = executionContext.handleNext(request);
+        assertThat(response.getBodyString(), is("[\"SimpleAction\",\"post() method\",\"invoked\"]"));
+    }
+
+    @Test
     public void testRoutingLog() throws Exception {
         PrintStream originalStdOut = System.out;
         try {

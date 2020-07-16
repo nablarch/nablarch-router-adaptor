@@ -59,7 +59,8 @@ public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implement
         } else {
             path = request.getRequestPath();
         }
-        return ARStringUtil.removeStart(path, getBaseUri());
+        String normalized = ARStringUtil.removeStart(path, getBaseUri());
+        return normalized.startsWith("/") ? normalized : "/" + normalized;
     }
 
     @Override
