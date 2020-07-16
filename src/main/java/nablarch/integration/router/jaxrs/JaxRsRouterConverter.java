@@ -19,15 +19,24 @@ import java.util.List;
 public class JaxRsRouterConverter {
     private static final String PATH_SEPARATOR = "/";
     private final String applicationPath;
-    private JaxRsPathParser jaxRsPathParser;
-    
+    private final JaxRsPathParser jaxRsPathParser;
+
     /**
-     * コンストラクタ。
+     * アプリケーションパスのみを指定するコンストラクタ。
      * @param applicationPath アプリケーションパス
      */
     public JaxRsRouterConverter(String applicationPath) {
+        this(applicationPath, new JaxRsPathParser());
+    }
+    
+    /**
+     * アプリケーションパスと {@link JaxRsPathParser} を指定するコンストラクタ。
+     * @param applicationPath アプリケーションパス
+     * @param jaxRsPathParser {@link JaxRsPathParser}
+     */
+    public JaxRsRouterConverter(String applicationPath, JaxRsPathParser jaxRsPathParser) {
         this.applicationPath = applicationPath;
-        setJaxRsPathParser(new JaxRsPathParser());
+        this.jaxRsPathParser = jaxRsPathParser;
     }
 
     /**
@@ -94,9 +103,5 @@ public class JaxRsRouterConverter {
             result.append(pathValue);
         }
         return result.toString();
-    }
-
-    void setJaxRsPathParser(JaxRsPathParser jaxRsPathParser) {
-        this.jaxRsPathParser = jaxRsPathParser;
     }
 }

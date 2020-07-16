@@ -160,8 +160,7 @@ public class JaxRsRouterConverterTest {
         }
 
         final PathRequirements mockPathRequirements = new PathRequirements("mock", Options.newInstance());
-        JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
-        sut.setJaxRsPathParser(new JaxRsPathParser() {
+        JaxRsRouterConverter sut = new JaxRsRouterConverter("test", new JaxRsPathParser() {
             @Override
             public PathRequirements parse(String jaxRsPath) {
                 return mockPathRequirements;
