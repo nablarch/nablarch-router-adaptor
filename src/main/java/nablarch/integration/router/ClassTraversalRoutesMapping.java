@@ -34,7 +34,7 @@ public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implement
     @Override
     protected Class<?> getHandlerClass(HttpRequest request, ExecutionContext executionContext) throws ClassNotFoundException {
         try {
-            String path = getPath(executionContext);
+            String path = getPath(request, executionContext);
             Options options = routeSet.recognizePath(path, request.getMethod());
 
             executionContext.setMethodBinder(methodBinderFactory.create((String) options.get("action")));
@@ -52,8 +52,13 @@ public class ClassTraversalRoutesMapping extends RoutingHandlerSupport implement
         }
     }
     
-    private String getPath(ExecutionContext executionContext) {
-        String path = ((ServletExecutionContext) executionContext).getHttpRequest().getRequestPath();
+    private String getPath(HttpRequest request, ExecutionContext executionContext) {
+        String path;
+        if (executionContext instanceof ServletExecutionContext) {
+            path = ((ServletExecutionContext) executionContext).getHttpRequest().getRequestPath();
+        } else {
+            path = request.getRequestPath();
+        }
         return ARStringUtil.removeStart(path, getBaseUri());
     }
 

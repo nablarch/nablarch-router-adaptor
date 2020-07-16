@@ -12,7 +12,7 @@ import nablarch.fw.web.servlet.HttpRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import nablarch.integration.jaxrs.jersey.JerseyJaxRsHandlerListFactory;
 import nablarch.integration.router.jaxrs.JaxRsOptionsCollector;
-import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testPathParameter.PathParameterAction;
+import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testNotServletExecutionContext.FooAction;
 import nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting.SimpleAction;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 /**
  * {@link ClassTraversalOptionsCollector} のテスト。
@@ -55,7 +55,6 @@ public class ClassTraversalRoutesMappingTest {
         executionContext = new ServletExecutionContext(new MockHttpServletRequest(servletRequest), null, null);
 
         sut = new ClassTraversalRoutesMapping();
-        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
         
         JaxRsOptionsCollector jaxRsOptionsCollector = new JaxRsOptionsCollector();
         jaxRsOptionsCollector.setApplicationPath("test");
@@ -75,12 +74,33 @@ public class ClassTraversalRoutesMappingTest {
     }
 
     @Test
+    public void testNotServletExecutionContext() throws Exception {
+        new Expectations() {{
+            request.getMethod(); result = "GET";
+            request.getRequestPath(); result = "/test/foo";
+        }};
+
+        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testNotServletExecutionContext");
+        sut.initialize();
+
+        ExecutionContext plainExecutionContext = new ExecutionContext();
+        Class<?> handlerClass = sut.getHandlerClass(request, plainExecutionContext);
+        
+        assertThat(handlerClass, Matchers.<Class<?>>sameInstance(FooAction.class));
+
+        plainExecutionContext.addHandler(new FooAction());
+        final HttpResponse response = plainExecutionContext.handleNext(request);
+        assertThat(response.getBodyString(), is("[\"FooAction\",\"get() method\",\"invoked\"]"));
+    }
+
+    @Test
     public void testSimpleRouting() throws Exception {
         new Expectations() {{
             request.getMethod(); result = "GET";
             request.getRequestPath(); result = "/test/simple";
         }};
-        
+
+        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
         sut.initialize();
 
         Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
@@ -99,6 +119,7 @@ public class ClassTraversalRoutesMappingTest {
             request.getRequestPath(); result = "/test/simple";
         }};
 
+        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
         sut.initialize();
 
         exception.expect(HttpErrorResponse.class);
@@ -119,6 +140,7 @@ public class ClassTraversalRoutesMappingTest {
         }};
 
         sut.setBaseUri("/base-uri");
+        sut.setBasePackage("nablarch.integration.router.test.ClassTraversalRoutesMappingTest.testSimpleRouting");
         sut.initialize();
 
         Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
