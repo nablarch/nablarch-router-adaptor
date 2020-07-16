@@ -73,6 +73,10 @@ public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport impl
         for (PathOptions pathOptions : pathOptionsList) {
             routeSet.addRoute(pathOptions.getPath() , pathOptions.getOptions());
         }
+        
+        if (methodBinderFactory == null) {
+            setMethodBinderFactory(new RoutesMethodBinderFactory());
+        }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.logDebug(pathOptionsFormatter.format(pathOptionsList));

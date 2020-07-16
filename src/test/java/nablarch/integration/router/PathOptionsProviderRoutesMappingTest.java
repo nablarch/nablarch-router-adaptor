@@ -88,7 +88,7 @@ public class PathOptionsProviderRoutesMappingTest {
         plainExecutionContext.addHandler(new FooAction());
         assertThat((String)plainExecutionContext.handleNext(request), is("FooAction#get() method is invoked"));
     }
-    
+        
     @Test
     public void testSimpleRouting() throws Exception {
         new Expectations() {{
@@ -224,6 +224,27 @@ public class PathOptionsProviderRoutesMappingTest {
             request.setParam("controller", (String[])any); times = 0;
             request.setParam("action", (String[])any); times = 0;
         }};
+    }
+    
+    @Test
+    public void testRoutesMethodBinderFactoryIsUsedIfMethodBinderFactoryIsNotSet() throws Exception {
+        new Expectations() {{
+            request.getMethod(); result = "GET";
+            request.getRequestPath(); result = "/test/simple";
+        }};
+
+        sut.setMethodBinderFactory(null);
+        pathOptionsProvider
+                .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
+                .add(pathOptions("POST", "/test/simple", SimpleAction.class, "post"));
+
+        sut.initialize();
+
+        Class<?> handlerClass = sut.getHandlerClass(request, executionContext);
+        assertThat(handlerClass, Matchers.<Class<?>>sameInstance(SimpleAction.class));
+
+        executionContext.addHandler(new SimpleAction());
+        assertThat((String)executionContext.handleNext(request), is("SimpleAction#get() method is invoked"));
     }
 
     private static class MockPathOptionsProvider implements PathOptionsProvider {
