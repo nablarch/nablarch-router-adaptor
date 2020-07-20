@@ -11,7 +11,7 @@ import java.util.TreeMap;
 /**
  * {@link PathOptions} を単純な形式でフォーマットする機能を提供するクラス。
  * <p>
- * このフォーマッタは、まず {@link PathOptions} のリストを {@code path} の昇順でソートする。<br>
+ * このフォーマッタは、まず {@link PathOptions} のリストを {@code path} とHTTPメソッド({@code options.conditions.method})の昇順でソートする。<br>
  * そして、それぞれの {@link PathOptions} を {@code "<options.conditions.method> <path> => <options.controller>#<options.action>"}
  * という書式でフォーマットし、改行コード({@code System.getProperty("line.separator")})で連結したものをフォーマット結果として返す。<br>
  * </p>
@@ -22,15 +22,15 @@ public class SimplePathOptionsFormatter implements PathOptionsFormatter {
 
     @Override
     public String format(List<PathOptions> pathOptionsList) {
-        SortedMap<String, PathOptions> sortedByPath = new TreeMap<String, PathOptions>();
+        SortedMap<String, PathOptions> sortedByPathAndHttpMethod = new TreeMap<String, PathOptions>();
 
         for (PathOptions pathOptions : pathOptionsList) {
             Options condition = (Options)pathOptions.getOptions().get("conditions");
-            sortedByPath.put(pathOptions.getPath() + " " + condition.get("method"), pathOptions);
+            sortedByPathAndHttpMethod.put(pathOptions.getPath() + " " + condition.get("method"), pathOptions);
         }
 
         List<String> logStringList = new ArrayList<String>(pathOptionsList.size());
-        for (PathOptions pathOptions : sortedByPath.values()) {
+        for (PathOptions pathOptions : sortedByPathAndHttpMethod.values()) {
             logStringList.add(format(pathOptions));
         }
 
