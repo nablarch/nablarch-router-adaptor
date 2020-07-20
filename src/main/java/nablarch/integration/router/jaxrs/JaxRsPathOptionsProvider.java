@@ -4,6 +4,8 @@ import nablarch.integration.router.PathOptionsProvider;
 import nablarch.integration.router.PathOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -12,9 +14,16 @@ import java.util.List;
  * @author Tanaka Tomoyuki
  */
 public class JaxRsPathOptionsProvider implements PathOptionsProvider {
+    private static final Comparator<PathOptions> ORDER_BY_PATH_ASC = new Comparator<PathOptions>() {
+        @Override
+        public int compare(PathOptions left, PathOptions right) {
+            return left.getPath().compareTo(right.getPath());
+        }
+    };
+
     private String basePackage;
     private String applicationPath;
-    
+
     @Override
     public List<PathOptions> provide() {
         if (applicationPath == null) {
@@ -32,7 +41,21 @@ public class JaxRsPathOptionsProvider implements PathOptionsProvider {
         for (JaxRsResource jaxRsResource : resourceFinder.find(basePackage)) {
             pathOptionsList.addAll(pathStringParser.parse(jaxRsResource));
         }
-        
+
+        /*
+         * http-request-router はルーティング定義のリストを順番に調べて、
+         * 最初にマッチした定義を使用するようになっている。
+         *
+         * したがって、以下のような順番でルーティング定義がリストに入っていると、
+         * "/foo" へのリクエストが "/foo/(:param)" の定義とマッチしてしまう。
+         *
+         * 1. "/foo/(:param)"
+         * 2. "/foo"
+         *
+         * これを回避するため、定義のリストをパスの昇順でソートしている。
+         */
+        Collections.sort(pathOptionsList, ORDER_BY_PATH_ASC);
+
         return pathOptionsList;
     }
 

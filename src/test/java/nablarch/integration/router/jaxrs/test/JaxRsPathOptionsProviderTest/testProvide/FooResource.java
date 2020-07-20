@@ -1,4 +1,4 @@
-package nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest;
+package nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.testProvide;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
