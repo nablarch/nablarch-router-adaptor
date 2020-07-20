@@ -25,7 +25,8 @@ public class SimplePathOptionsFormatter implements PathOptionsFormatter {
         SortedMap<String, PathOptions> sortedByPath = new TreeMap<String, PathOptions>();
 
         for (PathOptions pathOptions : pathOptionsList) {
-            sortedByPath.put(pathOptions.getPath(), pathOptions);
+            Options condition = (Options)pathOptions.getOptions().get("conditions");
+            sortedByPath.put(pathOptions.getPath() + " " + condition.get("method"), pathOptions);
         }
 
         List<String> logStringList = new ArrayList<String>(pathOptionsList.size());

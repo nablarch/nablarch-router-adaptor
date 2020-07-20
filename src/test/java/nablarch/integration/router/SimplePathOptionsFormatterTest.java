@@ -20,7 +20,9 @@ public class SimplePathOptionsFormatterTest {
     public void testFormat() {
         List<PathOptions> pathOptionsList = Arrays.asList(
             pathOptions("GET", "/bbb/foo/(:param1)", "foo.bar.Action", "getMethod"),
+            pathOptions("PUT", "/aaa/fizz", "fizz.buzz.Action", "putMethod"),
             pathOptions("POST", "/aaa/fizz", "fizz.buzz.Action", "postMethod"),
+            pathOptions("DELETE", "/aaa/fizz", "fizz.buzz.Action", "deleteMethod"),
             pathOptions("PUT", "/ccc/hoge", "hoge.fuga.Action", "putMethod")
         );
 
@@ -30,7 +32,9 @@ public class SimplePathOptionsFormatterTest {
 
         String lineSeparator = System.getProperty("line.separator");
         assertThat(result, is(
+            "DELETE /aaa/fizz => fizz.buzz.Action#deleteMethod" + lineSeparator +
             "POST /aaa/fizz => fizz.buzz.Action#postMethod" + lineSeparator +
+            "PUT /aaa/fizz => fizz.buzz.Action#putMethod" + lineSeparator +
             "GET /bbb/foo/(:param1) => foo.bar.Action#getMethod" + lineSeparator +
             "PUT /ccc/hoge => hoge.fuga.Action#putMethod"
         ));
