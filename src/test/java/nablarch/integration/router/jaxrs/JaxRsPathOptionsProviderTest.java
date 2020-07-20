@@ -1,8 +1,8 @@
 package nablarch.integration.router.jaxrs;
 
 import nablarch.integration.router.PathOptions;
-import nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.FooResource;
-import nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.bar.BarResource;
+import nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.testProvide.FooResource;
+import nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.testProvide.bar.BarResource;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -45,7 +45,7 @@ public class JaxRsPathOptionsProviderTest {
     public void testProvide() {
         JaxRsPathOptionsProvider sut = new JaxRsPathOptionsProvider();
         sut.setApplicationPath("test");
-        sut.setBasePackage("nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest");
+        sut.setBasePackage("nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.testProvide");
         
         List<PathOptions> pathOptionsList = sut.provide();
         
@@ -68,6 +68,25 @@ public class JaxRsPathOptionsProviderTest {
                     )
                 )
             )
+        ));
+    }
+
+    @Test
+    public void testPathOptionsAreSortedByPathAscending() {
+        JaxRsPathOptionsProvider sut = new JaxRsPathOptionsProvider();
+        sut.setApplicationPath("/test");
+        sut.setBasePackage("nablarch.integration.router.jaxrs.test.JaxRsPathOptionsProviderTest.testPathOptionsAreSortedByPathAscending");
+
+        List<PathOptions> pathOptionsList = sut.provide();
+
+        assertThat(pathOptionsList, contains(
+            hasProperty("path", is("/test/bar")),
+            hasProperty("path", is("/test/bar/one")),
+            hasProperty("path", is("/test/foo")),
+            hasProperty("path", is("/test/foo/fizz")),
+            hasProperty("path", is("/test/foo/fizz/(:param)")),
+            hasProperty("path", is("/test/foo/fizz/alpha")),
+            hasProperty("path", is("/test/foo/fizz/beta"))
         ));
     }
 }
