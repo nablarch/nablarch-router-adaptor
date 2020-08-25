@@ -180,6 +180,7 @@ public class JaxRsRouterConverterTest {
     public void testThrowsExceptionIfMethodIsNotAnnotatedByHttpMethod() {
         @Path("test-resource")
         class TestResource {
+            @Deprecated
             void get() {}
         }
 
