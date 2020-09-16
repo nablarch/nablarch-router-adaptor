@@ -18,18 +18,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static nablarch.integration.router.PathOptionsFactory.*;
+import static nablarch.integration.router.PathOptionsFactory.pathOptions;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@link PathOptionsProvider} のテスト。
@@ -247,6 +244,50 @@ public class PathOptionsProviderRoutesMappingTest {
         assertThat((String)executionContext.handleNext(request), is("SimpleAction#get() method is invoked"));
     }
 
+    @Test
+    public void testClassAndMethodNamesAreSetInRequestScopedVar() throws Exception {
+        new Expectations() {{
+            request.getMethod(); result = "POST";
+            request.getRequestPath(); result = "/test/simple";
+        }};
+
+        pathOptionsProvider
+            .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
+            .add(pathOptions("POST", "/test/simple", SimpleAction.class, "post"));
+
+        sut.initialize();
+
+        sut.getHandlerClass(request, executionContext);
+
+        assertThat((String)executionContext.getRequestScopedVar(RoutesMapping.DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME),
+                is(SimpleAction.class.getName()));
+
+        assertThat((String)executionContext.getRequestScopedVar(RoutesMapping.DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME),
+                is("post"));
+    }
+
+    @Test
+    public void testChangeClassAndMethodVarNames() throws Exception {
+        new Expectations() {{
+            request.getMethod(); result = "DELETE";
+            request.getRequestPath(); result = "/test/simple";
+        }};
+
+        pathOptionsProvider.add(pathOptions("DELETE", "/test/simple", SimpleAction.class, "deleteMethod"));
+
+        sut.initialize();
+        sut.setRequestMappingClassVarName("test_controller");
+        sut.setRequestMappingMethodVarName("test_action");
+
+        sut.getHandlerClass(request, executionContext);
+
+        assertThat((String)executionContext.getRequestScopedVar("test_controller"),
+                is(SimpleAction.class.getName()));
+
+        assertThat((String)executionContext.getRequestScopedVar("test_action"),
+                is("deleteMethod"));
+    }
+
     private static class MockPathOptionsProvider implements PathOptionsProvider {
         private List<PathOptions> pathOptionsList = new ArrayList<PathOptions>();
 
@@ -258,24 +299,6 @@ public class PathOptionsProviderRoutesMappingTest {
         @Override
         public List<PathOptions> provide() {
             return pathOptionsList;
-        }
-    }
-
-    private static class MockHttpServletRequest extends HttpServletRequestWrapper {
-        private Map<String, Object> requestMap = new HashMap<String, Object>();
-
-        private MockHttpServletRequest(HttpServletRequest request) {
-            super(request);
-        }
-
-        @Override
-        public void setAttribute(String name, Object value) {
-            requestMap.put(name, value);
-        }
-
-        @Override
-        public Object getAttribute(String name) {
-            return requestMap.get(name);
         }
     }
 }

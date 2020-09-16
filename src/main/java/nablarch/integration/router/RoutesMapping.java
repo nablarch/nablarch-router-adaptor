@@ -30,6 +30,15 @@ import java.util.Map;
 public class RoutesMapping
         extends RoutingHandlerSupport implements Initializable {
 
+    /**
+     * アクションクラス名をリクエストスコープに保存するときのデフォルトのキー。
+     */
+    static final String DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME = "nablarch_request_mapping_class";
+    /**
+     * アクションクラスのメソッド名をリクエストスコープに保存するときのデフォルトのキー。
+     */
+    static final String DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME = "nablarch_request_mapping_method";
+
     private static volatile boolean loading = false;
     private static long lastLoaded = -1;
 
@@ -38,6 +47,9 @@ public class RoutesMapping
     private URL routesUrl;
     private long checkInterval;
     private String basePackage;
+
+    private String requestMappingClassVarName = DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME;
+    private String requestMappingMethodVarName = DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME;
 
     /**
      * コンストラクタ。
@@ -88,7 +100,9 @@ public class RoutesMapping
                     request.getMethod());
             final String controller = options.getString("controller");
 
-            executionContext.setMethodBinder(methodBinderFactory.create(options.getString("action")));
+            String action = options.getString("action");
+            executionContext.setRequestScopedVar(requestMappingMethodVarName, action);
+            executionContext.setMethodBinder(methodBinderFactory.create(action));
 
             final Options params = options.except("controller", "action");
 
@@ -98,7 +112,9 @@ public class RoutesMapping
                 }
             }
             final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            return loader.loadClass(basePackage + "." + controller + "Action");
+            String className = basePackage + "." + controller + "Action";
+            executionContext.setRequestScopedVar(requestMappingClassVarName, className);
+            return loader.loadClass(className);
         } catch (RoutingException e) {
             throw new HttpErrorResponse(404, e);
         }
@@ -211,5 +227,21 @@ public class RoutesMapping
             // RoutesMethodBinderFactoryを利用する。
             setMethodBinderFactory(new RoutesMethodBinderFactory());
         }
+    }
+
+    /**
+     * アクションクラス名をリクエストスコープに設定するときのキーを指定する。
+     * @param requestMappingClassVarName アクションクラス名のキー
+     */
+    public void setRequestMappingClassVarName(String requestMappingClassVarName) {
+        this.requestMappingClassVarName = requestMappingClassVarName;
+    }
+
+    /**
+     * アクションクラスのメソッド名をリクエストスコープに設定するときのキーを指定する。
+     * @param requestMappingMethodVarName アクションクラスのメソッド名のキー
+     */
+    public void setRequestMappingMethodVarName(String requestMappingMethodVarName) {
+        this.requestMappingMethodVarName = requestMappingMethodVarName;
     }
 }

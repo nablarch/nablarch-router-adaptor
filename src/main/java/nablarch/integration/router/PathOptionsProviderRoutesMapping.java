@@ -29,6 +29,8 @@ public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport impl
     private String baseUri = "";
     private PathOptionsProvider pathOptionsProvider;
     private PathOptionsFormatter pathOptionsFormatter = new SimplePathOptionsFormatter();
+    private String requestMappingClassVarName = RoutesMapping.DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME;
+    private String requestMappingMethodVarName = RoutesMapping.DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME;
 
     @Override
     protected Class<?> getHandlerClass(HttpRequest request, ExecutionContext executionContext) throws ClassNotFoundException {
@@ -36,7 +38,9 @@ public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport impl
             String path = getPath(request, executionContext);
             Options options = routeSet.recognizePath(path, request.getMethod());
 
-            executionContext.setMethodBinder(methodBinderFactory.create((String) options.get("action")));
+            String action = (String) options.get("action");
+            executionContext.setRequestScopedVar(requestMappingMethodVarName, action);
+            executionContext.setMethodBinder(methodBinderFactory.create(action));
 
             Options params = options.except("controller", "action");
             for (Map.Entry<String, Object> option : params.entrySet()) {
@@ -45,7 +49,10 @@ public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport impl
                 }
             }
 
-            return Thread.currentThread().getContextClassLoader().loadClass((String) options.get("controller"));
+            String controller = (String) options.get("controller");
+            executionContext.setRequestScopedVar(requestMappingClassVarName, controller);
+
+            return Thread.currentThread().getContextClassLoader().loadClass(controller);
         } catch (RoutingException e) {
             throw new HttpErrorResponse(HttpResponse.Status.NOT_FOUND.getStatusCode(), e);
         }
@@ -113,5 +120,21 @@ public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport impl
      */
     public void setPathOptionsFormatter(PathOptionsFormatter pathOptionsFormatter) {
         this.pathOptionsFormatter = pathOptionsFormatter;
+    }
+
+    /**
+     * アクションクラス名をリクエストスコープに設定するときのキーを指定する。
+     * @param requestMappingClassVarName アクションクラス名のキー
+     */
+    public void setRequestMappingClassVarName(String requestMappingClassVarName) {
+        this.requestMappingClassVarName = requestMappingClassVarName;
+    }
+
+    /**
+     * アクションクラスのメソッド名をリクエストスコープに設定するときのキーを指定する。
+     * @param requestMappingMethodVarName アクションクラスのメソッド名のキー
+     */
+    public void setRequestMappingMethodVarName(String requestMappingMethodVarName) {
+        this.requestMappingMethodVarName = requestMappingMethodVarName;
     }
 }

@@ -1,10 +1,6 @@
 package nablarch.integration.router;
 
-import mockit.Deencapsulation;
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mocked;
+import mockit.*;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.util.FileUtil;
@@ -14,13 +10,14 @@ import nablarch.fw.web.HttpRequest;
 import nablarch.fw.web.HttpResponse;
 import nablarch.fw.web.handler.MethodBinderFactory;
 import nablarch.fw.web.servlet.HttpRequestWrapper;
-import nablarch.fw.web.servlet.NablarchHttpServletRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import nablarch.integration.router.sub.SubRoutesMappingTestAction;
 import net.unit8.http.router.RoutingException;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -43,9 +40,8 @@ public class RoutesMappingTest {
 
     @Mocked
     private HttpRequestWrapper request;
-
     @Mocked
-    private NablarchHttpServletRequestWrapper nablarchRequestWrapper;
+    private HttpServletRequest servletRequest;
 
     private RoutesMapping sut;
     private ServletExecutionContext context;
@@ -67,7 +63,7 @@ public class RoutesMappingTest {
             }
         });
 
-        context = new ServletExecutionContext(null, null, null);
+        context = new ServletExecutionContext(new MockHttpServletRequest(servletRequest), null, null);
     }
 
     /**
@@ -341,5 +337,48 @@ public class RoutesMappingTest {
         sut.getHandlerClass(request, context);
 
         assertThat(context.getMethodBinder(), instanceOf(CustomMethodBinderFactory.CustomMethodBinder.class));
+    }
+
+    /**
+     * リクエストスコープにアクションクラスとメソッドの名前が格納されること。
+     */
+    @Test
+    public void testClassAndMethodNamesAreSetInRequestScopedVar() throws Exception {
+        new Expectations() {{
+            request.getRequestPath();
+            result = "/method";
+            request.getMethod();
+            result = "GET";
+        }};
+
+        sut.getHandlerClass(request, context);
+
+        assertThat((String)context.getRequestScopedVar(RoutesMapping.DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME),
+                Matchers.is(RoutesMappingTestAction.class.getName()));
+
+        assertThat((String)context.getRequestScopedVar(RoutesMapping.DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME),
+                Matchers.is("get"));
+    }
+
+    /**
+     * リクエストスコープに格納するアクションクラスとメソッド名のキーを指定できること。
+     */
+    @Test
+    public void testChangeClassAndMethodVarNames() throws Exception {
+        new Expectations() {{
+            request.getRequestPath();
+            result = "/RoutesMappingTest/controllerAction";
+        }};
+
+        sut.setRequestMappingClassVarName("test_controller");
+        sut.setRequestMappingMethodVarName("test_action");
+
+        sut.getHandlerClass(request, context);
+
+        assertThat((String) context.getRequestScopedVar("test_controller"),
+                Matchers.is(RoutesMappingTestAction.class.getName()));
+
+        assertThat((String) context.getRequestScopedVar("test_action"),
+                Matchers.is("controllerAction"));
     }
 }
