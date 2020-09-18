@@ -259,10 +259,10 @@ public class PathOptionsProviderRoutesMappingTest {
 
         sut.getHandlerClass(request, executionContext);
 
-        assertThat((String)executionContext.getRequestScopedVar(RoutesMapping.DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME),
+        assertThat((String)executionContext.getRequestScopedVar(PathOptionsProviderRoutesMapping.DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME),
                 is(SimpleAction.class.getName()));
 
-        assertThat((String)executionContext.getRequestScopedVar(RoutesMapping.DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME),
+        assertThat((String)executionContext.getRequestScopedVar(PathOptionsProviderRoutesMapping.DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME),
                 is("post"));
     }
 

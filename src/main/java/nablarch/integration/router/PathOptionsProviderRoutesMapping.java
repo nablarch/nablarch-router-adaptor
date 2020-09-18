@@ -25,12 +25,21 @@ import java.util.Map;
 public class PathOptionsProviderRoutesMapping extends RoutingHandlerSupport implements Initializable {
     private static final Logger LOGGER = LoggerManager.get(PathOptionsProviderRoutesMapping.class);
 
+    /**
+     * アクションクラス名をリクエストスコープに保存するときのデフォルトのキー。
+     */
+    static final String DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME = "nablarch_request_mapping_class";
+    /**
+     * アクションクラスのメソッド名をリクエストスコープに保存するときのデフォルトのキー。
+     */
+    static final String DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME = "nablarch_request_mapping_method";
+
     private final RouteSet routeSet = new RouteSet();
     private String baseUri = "";
     private PathOptionsProvider pathOptionsProvider;
     private PathOptionsFormatter pathOptionsFormatter = new SimplePathOptionsFormatter();
-    private String requestMappingClassVarName = RoutesMapping.DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME;
-    private String requestMappingMethodVarName = RoutesMapping.DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME;
+    private String requestMappingClassVarName = DEFAULT_REQUEST_MAPPING_CLASS_VAR_NAME;
+    private String requestMappingMethodVarName = DEFAULT_REQUEST_MAPPING_METHOD_VAR_NAME;
 
     @Override
     protected Class<?> getHandlerClass(HttpRequest request, ExecutionContext executionContext) throws ClassNotFoundException {
