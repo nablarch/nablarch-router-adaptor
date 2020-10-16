@@ -5,7 +5,12 @@ import nablarch.fw.ExecutionContext;
 import nablarch.fw.Result;
 import nablarch.fw.web.HttpRequest;
 import nablarch.fw.web.HttpResponse;
+import nablarch.fw.web.servlet.HttpRequestWrapper;
+import nablarch.fw.web.servlet.ServletExecutionContext;
 import org.junit.Test;
+
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServletRequest;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -17,6 +22,10 @@ public class RoutesMethodBinderTest {
 
     @Mocked
     private HttpRequest request;
+    @Mocked
+    private HttpRequestWrapper requestWrapper;
+    @Mocked
+    private HttpServletRequest servletRequest;
 
     private final ExecutionContext unusedContext = null;
 
@@ -28,8 +37,9 @@ public class RoutesMethodBinderTest {
     public void bindForCorrectMethod() {
 
         final RoutesMethodBinder sut = new RoutesMethodBinder("handle");
+        ServletExecutionContext context = new ServletExecutionContext(servletRequest, null, null);
 
-        String response = (String) sut.bind(new Action()).handle(request, unusedContext);
+        String response = (String) sut.bind(new Action()).handle(request, context);
 
         assertThat(response, is("invoking!!!"));
     }
