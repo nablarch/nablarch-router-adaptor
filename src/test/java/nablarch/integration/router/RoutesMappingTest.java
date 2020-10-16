@@ -21,6 +21,7 @@ import net.unit8.http.router.RoutingException;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -43,9 +44,8 @@ public class RoutesMappingTest {
 
     @Mocked
     private HttpRequestWrapper request;
-
     @Mocked
-    private NablarchHttpServletRequestWrapper nablarchRequestWrapper;
+    private HttpServletRequest servletRequest;
 
     private RoutesMapping sut;
     private ServletExecutionContext context;
@@ -67,7 +67,7 @@ public class RoutesMappingTest {
             }
         });
 
-        context = new ServletExecutionContext(null, null, null);
+        context = new ServletExecutionContext(servletRequest, null, null);
     }
 
     /**
