@@ -2,5 +2,6 @@
   <root to="RoutesMappingTest#root"/>
   <get  path="method" to="RoutesMappingTest#get"/>
   <post path="method" to="RoutesMappingTest#post"/>
+  <patch path="method" to="RoutesMappingTest#patch"/>
   <match path=":controller/:action/:id" />
 </routes>
