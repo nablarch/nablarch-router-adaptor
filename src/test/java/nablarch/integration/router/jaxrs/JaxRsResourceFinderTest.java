@@ -60,9 +60,6 @@ public class JaxRsResourceFinderTest {
             hasProperty("name", is("patch")),
             hasProperty("name", is("myHttpMethod"))
         ));
-        assertThat(jaxRsResource.getResourceMethodList(), not(contains(
-                hasProperty("name", is("notAnnotated"))
-        )));
     }
     
     @Test
