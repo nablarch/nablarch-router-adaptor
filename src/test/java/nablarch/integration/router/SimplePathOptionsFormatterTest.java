@@ -23,7 +23,8 @@ public class SimplePathOptionsFormatterTest {
             pathOptions("PUT", "/aaa/fizz", "fizz.buzz.Action", "putMethod"),
             pathOptions("POST", "/aaa/fizz", "fizz.buzz.Action", "postMethod"),
             pathOptions("DELETE", "/aaa/fizz", "fizz.buzz.Action", "deleteMethod"),
-            pathOptions("PUT", "/ccc/hoge", "hoge.fuga.Action", "putMethod")
+            pathOptions("PUT", "/ccc/hoge", "hoge.fuga.Action", "putMethod"),
+            pathOptions("PATCH", "/ccc/hoge", "hoge.fuga.Action", "patchMethod")
         );
 
         SimplePathOptionsFormatter sut = new SimplePathOptionsFormatter();
@@ -36,6 +37,7 @@ public class SimplePathOptionsFormatterTest {
             "POST /aaa/fizz => fizz.buzz.Action#postMethod" + lineSeparator +
             "PUT /aaa/fizz => fizz.buzz.Action#putMethod" + lineSeparator +
             "GET /bbb/foo/(:param1) => foo.bar.Action#getMethod" + lineSeparator +
+            "PATCH /ccc/hoge => hoge.fuga.Action#patchMethod" + lineSeparator +
             "PUT /ccc/hoge => hoge.fuga.Action#putMethod"
         ));
     }

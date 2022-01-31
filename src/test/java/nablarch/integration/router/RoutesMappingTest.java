@@ -111,6 +111,26 @@ public class RoutesMappingTest {
     }
 
     /**
+     * PATCHリクエストをマッピングできること。
+     */
+    @Test
+    public void patch() throws Exception {
+
+        new Expectations() {{
+            request.getRequestPath();
+            result = "/method";
+            request.getMethod();
+            result = "PATCH";
+        }};
+
+        Class<?> cls = sut.getHandlerClass(request, context);
+        assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
+
+        context.addHandler(new RoutesMappingTestAction());
+        assertThat((String) context.handleNext(request), is("patch method was invoked."));
+    }
+
+    /**
      * 特別なパラメータである:controllerと:actionを使ったマッピングができること。
      */
     @Test

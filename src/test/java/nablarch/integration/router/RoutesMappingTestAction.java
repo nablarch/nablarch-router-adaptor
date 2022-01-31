@@ -20,6 +20,10 @@ public class RoutesMappingTestAction {
         return "post method was invoked.";
     }
 
+    public String patch(HttpRequest request, ExecutionContext context) {
+        return "patch method was invoked.";
+    }
+
     public String controllerAction(HttpRequest request, ExecutionContext context) {
         return "controllerAction method was invoked.";
     }

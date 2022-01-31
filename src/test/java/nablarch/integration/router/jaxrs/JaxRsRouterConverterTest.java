@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -138,16 +139,21 @@ public class JaxRsRouterConverterTest {
             @PUT
             @Path("put-method")
             void put() {}
+
+            @PATCH
+            @Path("patch-method")
+            void patch() {}
         }
 
         JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
-        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get", "post", "put"));
+        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get", "post", "put", "patch"));
 
         assertThat(pathOptionsList, containsInAnyOrder(
             hasProperty("path", is("test/test-resource/get-method")),
             hasProperty("path", is("test/test-resource/post-method")),
-            hasProperty("path", is("test/test-resource/put-method"))
+            hasProperty("path", is("test/test-resource/put-method")),
+            hasProperty("path", is("test/test-resource/patch-method"))
         ));
     }
     
