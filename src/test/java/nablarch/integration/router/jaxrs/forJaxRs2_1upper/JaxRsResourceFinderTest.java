@@ -15,15 +15,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class JaxRsResourceFinderTest {
-    private JaxRsResourceFinder sut;
-
-    @Before
-    public void before() {
-        sut = new JaxRsResourceFinder();
-    }
-
     @Test
     public void testFindResourceMethods() {
+        JaxRsResourceFinder sut = new JaxRsResourceFinder();
         List<JaxRsResource> jaxRsResourceList = sut.find("nablarch.integration.router.jaxrs.forJaxRs2_1upper.test.testFindResourceMethods");
 
         JaxRsResource jaxRsResource = jaxRsResourceList.get(0);
