@@ -5,7 +5,6 @@ import nablarch.core.util.ResourcesUtil;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testFindResourceMethods.ResourceClass;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testFindResourceClasses.ClassAndMethodAreAnnotatedByPath;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testFindResourceClasses.ClassIsAnnotatedByPath;
-import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testFindResourceClasses.MethodIsAnnotatedByPath;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testFindResourceClasses.foo.ResourceInSubPackage;
 import org.hamcrest.Matchers;
 import org.junit.Before;
