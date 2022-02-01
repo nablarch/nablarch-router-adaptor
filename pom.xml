@@ -18,13 +18,58 @@
     <artifactId>nablarch-parent</artifactId>
     <version>5-NEXT-SNAPSHOT</version>
   </parent>
+
+  <properties>
+    <javax.ws.rs-api.version>2.0.1</javax.ws.rs-api.version>
+  </properties>
   
   <profiles>
+<!--  JAX-RSの2.1で追加された@PATCHによるルーティングを使えることを
+  nablarch/integration/router/jaxrs/forJaxRs2_1upper/配下のテストクラスで確認している。
+  JAX-RS2.1はJava8でコンパイルされているため、Java6・7では使用できず、使用可能なバージョン2.0.1を使用する。
+  その際、@PATCHがなくコンパイルエラーとならないよう上記のパッケージはJava6・7ではコンパイル対象外とする。-->
+    <profile>
+      <id>java6</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+                <testExclude>nablarch/integration/router/jaxrs/forJaxRs2_1upper/</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java7</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+                <testExclude>nablarch/integration/router/jaxrs/forJaxRs2_1upper/</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java8</id>
+      <properties>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
+      </properties>
+    </profile>
     <profile>
       <id>java11</id>
       <properties>
         <jmockit.version>1.43</jmockit.version>
         <junit.additionalArgLine>-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar</junit.additionalArgLine>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
       </properties>
       <dependencies>
         <dependency>
@@ -58,7 +103,7 @@
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
-      <version>2.1.1</version>
+      <version>${javax.ws.rs-api.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
