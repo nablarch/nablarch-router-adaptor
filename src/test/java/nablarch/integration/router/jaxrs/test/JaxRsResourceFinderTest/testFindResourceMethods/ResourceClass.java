@@ -13,9 +13,6 @@ public class ResourceClass {
     @POST
     private void post() {}
 
-    @PATCH
-    public void patch() {}
-
     public void notAnnotated() {}
 
     @MyHttpMethod
