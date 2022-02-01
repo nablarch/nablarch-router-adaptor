@@ -4,7 +4,6 @@ import nablarch.integration.router.jaxrs.JaxRsResource;
 import nablarch.integration.router.jaxrs.JaxRsResourceFinder;
 import nablarch.integration.router.jaxrs.forJaxRs2_1upper.test.testFindResourceMethods.ResourceClass;
 import org.hamcrest.Matchers;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
