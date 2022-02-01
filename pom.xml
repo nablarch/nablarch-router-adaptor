@@ -20,6 +20,67 @@
   </parent>
   
   <profiles>
+<!--  JAX-RSの2.1で追加された@PATCHによるルーティングを使えることを
+  nablarch/integration/router/jaxrs/forJaxRs2_1upper/配下のテストクラスで確認している。
+  JAX-RS2.1はJava8でコンパイルされているため、Java6・7では使用できず、使用可能なバージョン2.0.1を使用する。
+  その際、@PATCHがなくコンパイルエラーとならないよう上記のパッケージはJava6・7ではコンパイル対象外とする。-->
+    <profile>
+      <id>java6</id>
+      <dependencies>
+        <dependency>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <version>2.0.1</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+                <testExclude>nablarch/integration/router/jaxrs/forJaxRs2_1upper/</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java7</id>
+      <dependencies>
+        <dependency>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <version>2.0.1</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+                <testExclude>nablarch/integration/router/jaxrs/forJaxRs2_1upper/</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java8</id>
+      <dependencies>
+        <dependency>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <version>2.1.1</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
     <profile>
       <id>java11</id>
       <properties>
@@ -36,6 +97,12 @@
           <groupId>com.sun.activation</groupId>
           <artifactId>javax.activation</artifactId>
           <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <version>2.1.1</version>
+          <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
@@ -54,12 +121,6 @@
     <dependency>
       <groupId>com.nablarch.framework</groupId>
       <artifactId>nablarch-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
-      <version>2.1.1</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
