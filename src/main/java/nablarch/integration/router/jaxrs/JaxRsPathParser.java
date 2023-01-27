@@ -5,7 +5,7 @@ import net.unit8.http.router.Options;
 import java.util.regex.Pattern;
 
 /**
- * {@link javax.ws.rs.Path} に設定されたパス文字列を解析して、 {@link PathRequirements} に変換するクラス。
+ * {@link jakarta.ws.rs.Path} に設定されたパス文字列を解析して、 {@link PathRequirements} に変換するクラス。
  * 
  * @author Tanaka Tomoyuki
  */

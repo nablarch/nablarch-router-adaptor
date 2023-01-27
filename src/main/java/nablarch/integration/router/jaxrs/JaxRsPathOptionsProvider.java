@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * {@link javax.ws.rs.Path} アノテーションが設定されたクラスを探索してルーティング定義を収集するクラス。
+ * {@link jakarta.ws.rs.Path} アノテーションが設定されたクラスを探索してルーティング定義を収集するクラス。
  *
  * @author Tanaka Tomoyuki
  */

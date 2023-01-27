@@ -4,8 +4,8 @@ import nablarch.core.util.ClassTraversal.ClassHandler;
 import nablarch.core.util.ResourcesUtil;
 import nablarch.core.util.ResourcesUtil.Resources;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Path;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.List;
 public class JaxRsResourceFinder {
 
     /**
-     * 指定されたパッケージ配下を検索し、{@link javax.ws.rs.Path} アノテーションが設定された
+     * 指定されたパッケージ配下を検索し、{@link jakarta.ws.rs.Path} アノテーションが設定された
      * クラスおよびメソッドを抽出する。
      * @param basePackage 検索対象のパッケージ
      * @return 検索結果

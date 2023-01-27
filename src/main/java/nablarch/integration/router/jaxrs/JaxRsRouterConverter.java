@@ -3,8 +3,8 @@ package nablarch.integration.router.jaxrs;
 import nablarch.integration.router.PathOptions;
 import net.unit8.http.router.Options;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Path;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;

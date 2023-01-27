@@ -20,76 +20,9 @@
   </parent>
 
   <properties>
-    <javax.ws.rs-api.version>2.0.1</javax.ws.rs-api.version>
+    <jmockit.version>1.43</jmockit.version>
+    <junit.additionalArgLine>-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar</junit.additionalArgLine>
   </properties>
-  
-  <profiles>
-<!--  JAX-RSの2.1で追加された@PATCHによるルーティングを使えることを
-  nablarch/integration/router/jaxrs/forJaxRs2_1upper/配下のテストクラスで確認している。
-  JAX-RS2.1はJava8でコンパイルされているため、Java6・7では使用できず、使用可能なバージョン2.0.1を使用する。
-  その際、@PATCHがなくコンパイルエラーとならないよう上記のパッケージはJava6・7ではコンパイル対象外とする。-->
-    <profile>
-      <id>java6-compile</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes>
-                <testExclude>nablarch/integration/router/jaxrs/forJaxRs2_1upper/</testExclude>
-              </testExcludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>java7-compile</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes>
-                <testExclude>nablarch/integration/router/jaxrs/forJaxRs2_1upper/</testExclude>
-              </testExcludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>java8-compile</id>
-      <properties>
-        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
-      </properties>
-    </profile>
-    <profile>
-      <id>java11-compile</id>
-      <properties>
-        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
-      </properties>
-    </profile>
-    <profile>
-      <id>java11</id>
-      <properties>
-        <jmockit.version>1.43</jmockit.version>
-        <junit.additionalArgLine>-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar</junit.additionalArgLine>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>javax.activation</groupId>
-          <artifactId>javax.activation-api</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.sun.activation</groupId>
-          <artifactId>javax.activation</artifactId>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
 
   <dependencies>
     <dependency>
@@ -106,15 +39,15 @@
       <artifactId>nablarch-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
-      <version>${javax.ws.rs-api.version}</version>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>3.1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -127,7 +60,13 @@
       <artifactId>nablarch-jersey-adaptor</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-activation</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
