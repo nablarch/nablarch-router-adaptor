@@ -1,8 +1,7 @@
 package nablarch.integration.router;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import nablarch.core.util.StringUtil;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.web.HttpErrorResponse;
@@ -12,13 +11,13 @@ import nablarch.integration.router.test.PathOptionsProviderRoutesMappingTest.tes
 import nablarch.integration.router.test.PathOptionsProviderRoutesMappingTest.testPathParameter.PathParameterAction;
 import nablarch.integration.router.test.PathOptionsProviderRoutesMappingTest.testSimpleRouting.SimpleAction;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.MockedConstruction;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -27,9 +26,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static nablarch.integration.router.PathOptionsFactory.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static nablarch.integration.router.PathOptionsFactory.pathOptions;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * {@link PathOptionsProvider} のテスト。
@@ -37,10 +46,9 @@ import static org.junit.Assert.*;
  * @author Tanaka Tomoyuki
  */
 public class PathOptionsProviderRoutesMappingTest {
-    @Mocked
+    private MockedConstruction<HttpRequestWrapper> httpRequestWrapperMock;
     private HttpRequestWrapper request;
-    @Mocked
-    private HttpServletRequest servletRequest;
+    private final HttpServletRequest servletRequest = mock(HttpServletRequest.class, RETURNS_DEEP_STUBS);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -51,6 +59,9 @@ public class PathOptionsProviderRoutesMappingTest {
     
     @Before
     public void setUp() {
+        httpRequestWrapperMock = mockConstruction(HttpRequestWrapper.class, (mock, context) -> {
+            request = mock;
+        });
         executionContext = new ServletExecutionContext(new MockHttpServletRequest(servletRequest), null, null);
 
         sut = new PathOptionsProviderRoutesMapping();
@@ -59,6 +70,11 @@ public class PathOptionsProviderRoutesMappingTest {
         
         pathOptionsProvider = new MockPathOptionsProvider();
         sut.setPathOptionsProvider(pathOptionsProvider);
+    }
+
+    @After
+    public void tearDown() {
+        httpRequestWrapperMock.close();
     }
 
     @Test
@@ -72,10 +88,8 @@ public class PathOptionsProviderRoutesMappingTest {
 
     @Test
     public void testNotServletExecutionContext() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "GET";
-            request.getRequestPath(); result = "/test/foo";
-        }};
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getRequestPath()).thenReturn("/test/foo");
 
         ExecutionContext plainExecutionContext = new ExecutionContext();
         pathOptionsProvider.add(pathOptions("GET", "/test/foo", FooAction.class, "get"));
@@ -91,10 +105,8 @@ public class PathOptionsProviderRoutesMappingTest {
         
     @Test
     public void testSimpleRouting() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "GET";
-            request.getRequestPath(); result = "/test/simple";
-        }};
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getRequestPath()).thenReturn("/test/simple");
 
         pathOptionsProvider
             .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
@@ -111,10 +123,8 @@ public class PathOptionsProviderRoutesMappingTest {
     
     @Test
     public void testThrowsExceptionIfRouteNotFound() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "PUT";
-            request.getRequestPath(); result = "/test/simple";
-        }};
+        when(request.getMethod()).thenReturn("PUT");
+        when(request.getRequestPath()).thenReturn("/test/simple");
 
         pathOptionsProvider
             .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
@@ -133,10 +143,8 @@ public class PathOptionsProviderRoutesMappingTest {
     
     @Test
     public void testBaseUri() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "POST";
-            request.getRequestPath(); result = "/base-uri/test/simple";
-        }};
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getRequestPath()).thenReturn("/base-uri/test/simple");
 
         pathOptionsProvider
             .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
@@ -154,10 +162,8 @@ public class PathOptionsProviderRoutesMappingTest {
 
     @Test
     public void testBaseUriEndsWithSlash() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "POST";
-            request.getRequestPath(); result = "/base-uri/test/simple";
-        }};
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getRequestPath()).thenReturn("/base-uri/test/simple");
 
         pathOptionsProvider
             .add(pathOptions("GET", "/test/simple", SimpleAction.class, "get"))
@@ -208,30 +214,24 @@ public class PathOptionsProviderRoutesMappingTest {
     
     @Test
     public void testPathParameter() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "GET";
-            request.getRequestPath(); result = "/test/path-param/123/get/hello";
-        }};
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getRequestPath()).thenReturn("/test/path-param/123/get/hello");
 
         pathOptionsProvider.add(pathOptions("GET", "/test/path-param/(:param1)/get/(:param2)", PathParameterAction.class, "get"));
         sut.initialize();
         
         sut.getHandlerClass(request, executionContext);
-        
-        new Verifications() {{
-            request.setParam("param1", "123"); times = 1;
-            request.setParam("param2", "hello"); times = 1;
-            request.setParam("controller", (String[])any); times = 0;
-            request.setParam("action", (String[])any); times = 0;
-        }};
+
+        verify(request).setParam("param1", "123");
+        verify(request).setParam("param2", "hello");
+        verify(request, never()).setParam(eq("controller"), any());
+        verify(request, never()).setParam(eq("action"), any());
     }
     
     @Test
     public void testRoutesMethodBinderFactoryIsUsedIfMethodBinderFactoryIsNotSet() throws Exception {
-        new Expectations() {{
-            request.getMethod(); result = "GET";
-            request.getRequestPath(); result = "/test/simple";
-        }};
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getRequestPath()).thenReturn("/test/simple");
 
         sut.setMethodBinderFactory(null);
         pathOptionsProvider

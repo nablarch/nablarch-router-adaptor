@@ -1,6 +1,6 @@
 package nablarch.integration.router;
 
-import mockit.Mocked;
+import jakarta.servlet.http.HttpServletRequest;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Result;
 import nablarch.fw.web.HttpRequest;
@@ -8,24 +8,21 @@ import nablarch.fw.web.HttpResponse;
 import nablarch.fw.web.servlet.HttpRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import org.junit.Test;
-
-import jakarta.servlet.Servlet;
-import jakarta.servlet.http.HttpServletRequest;
+import org.mockito.MockedConstruction;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 
 /**
  * {@link RoutesMethodBinder}のテスト。
  */
 public class RoutesMethodBinderTest {
 
-    @Mocked
-    private HttpRequest request;
-    @Mocked
-    private HttpRequestWrapper requestWrapper;
-    @Mocked
-    private HttpServletRequest servletRequest;
+    private final HttpRequest request = mock(HttpRequest.class);
+    private final HttpServletRequest servletRequest = mock(HttpServletRequest.class, RETURNS_DEEP_STUBS);
 
     private final ExecutionContext unusedContext = null;
 
@@ -35,13 +32,14 @@ public class RoutesMethodBinderTest {
      */
     @Test
     public void bindForCorrectMethod() {
+        try (final MockedConstruction<HttpRequestWrapper> mocked = mockConstruction(HttpRequestWrapper.class)) {
+            final RoutesMethodBinder sut = new RoutesMethodBinder("handle");
+            ServletExecutionContext context = new ServletExecutionContext(servletRequest, null, null);
 
-        final RoutesMethodBinder sut = new RoutesMethodBinder("handle");
-        ServletExecutionContext context = new ServletExecutionContext(servletRequest, null, null);
+            String response = (String) sut.bind(new Action()).handle(request, context);
 
-        String response = (String) sut.bind(new Action()).handle(request, context);
-
-        assertThat(response, is("invoking!!!"));
+            assertThat(response, is("invoking!!!"));
+        }
     }
 
     /**
