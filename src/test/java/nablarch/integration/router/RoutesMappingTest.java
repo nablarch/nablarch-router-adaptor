@@ -1,10 +1,6 @@
 package nablarch.integration.router;
 
-import mockit.Deencapsulation;
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mocked;
+import jakarta.servlet.http.HttpServletRequest;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.util.FileUtil;
@@ -14,14 +10,15 @@ import nablarch.fw.web.HttpRequest;
 import nablarch.fw.web.HttpResponse;
 import nablarch.fw.web.handler.MethodBinderFactory;
 import nablarch.fw.web.servlet.HttpRequestWrapper;
-import nablarch.fw.web.servlet.NablarchHttpServletRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import nablarch.integration.router.sub.SubRoutesMappingTestAction;
+import nablarch.test.support.reflection.ReflectionUtil;
 import net.unit8.http.router.RoutingException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedConstruction;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -31,6 +28,10 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 /**
  * {@link RoutesMapping}のテスト。
@@ -42,16 +43,18 @@ import static org.junit.Assert.fail;
  */
 public class RoutesMappingTest {
 
-    @Mocked
+    private MockedConstruction<HttpRequestWrapper> httpRequestWrapperMock;
     private HttpRequestWrapper request;
-    @Mocked
-    private HttpServletRequest servletRequest;
+    private final HttpServletRequest servletRequest = mock(HttpServletRequest.class, RETURNS_DEEP_STUBS);
 
     private RoutesMapping sut;
     private ServletExecutionContext context;
 
     @Before
     public void setUp() {
+        httpRequestWrapperMock = mockConstruction(HttpRequestWrapper.class, (mock, context) -> {
+            request = mock;
+        });
 
         sut = new RoutesMapping();
         sut.setBasePackage("nablarch.integration.router");
@@ -70,18 +73,19 @@ public class RoutesMappingTest {
         context = new ServletExecutionContext(servletRequest, null, null);
     }
 
+    @After
+    public void tearDown() {
+        httpRequestWrapperMock.close();
+    }
+
     /**
      * GETリクエストをマッピングできること。
      */
     @Test
     public void get() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/method";
-            request.getMethod();
-            result = "GET";
-        }};
+        when(request.getRequestPath()).thenReturn("/method");
+        when(request.getMethod()).thenReturn("GET");
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
@@ -96,12 +100,8 @@ public class RoutesMappingTest {
     @Test
     public void post() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/method";
-            request.getMethod();
-            result = "POST";
-        }};
+        when(request.getRequestPath()).thenReturn("/method");
+        when(request.getMethod()).thenReturn("POST");
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
@@ -116,12 +116,8 @@ public class RoutesMappingTest {
     @Test
     public void patch() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/method";
-            request.getMethod();
-            result = "PATCH";
-        }};
+        when(request.getRequestPath()).thenReturn("/method");
+        when(request.getMethod()).thenReturn("PATCH");
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
@@ -136,10 +132,7 @@ public class RoutesMappingTest {
     @Test
     public void controllerAction() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/RoutesMappingTest/controllerAction";
-        }};
+        when(request.getRequestPath()).thenReturn("/RoutesMappingTest/controllerAction");
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
@@ -154,10 +147,7 @@ public class RoutesMappingTest {
     @Test
     public void controllerActionForSubPackage() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/sub/SubRoutesMappingTest/controllerActionForSubPackage";
-        }};
+        when(request.getRequestPath()).thenReturn("/sub/SubRoutesMappingTest/controllerActionForSubPackage");
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(SubRoutesMappingTestAction.class.getName()));
@@ -173,16 +163,11 @@ public class RoutesMappingTest {
     public void pathParameter() throws Exception {
 
         final Map<String, String> parameters = new HashMap<String, String>();
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/RoutesMappingTest/controllerActionWithId/1234";
-            request.setParam("id", "1234");
-            result = new Delegate<Void>() {
-                public void delegate(final String name, final String... params) {
-                    parameters.put(name, params[0]);
-                }
-            };
-        }};
+        when(request.getRequestPath()).thenReturn("/RoutesMappingTest/controllerActionWithId/1234");
+        when(request.setParam("id", "1234")).then(context -> {
+            parameters.put("id", "1234");
+            return null;
+        });
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
@@ -197,12 +182,10 @@ public class RoutesMappingTest {
      * 引数の{@link HttpRequest}から取得したリクエストパスを使ってマッピングできること。
      */
     @Test
-    public void notServletExecutionContext(@Mocked final HttpRequest request) throws Exception {
+    public void notServletExecutionContext() throws Exception {
+        final HttpRequest request = mock();
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/";
-        }};
+        when(request.getRequestPath()).thenReturn("/");
 
         final ExecutionContext executionContext = new ExecutionContext();
         Class<?> cls = sut.getHandlerClass(request, executionContext);
@@ -219,10 +202,7 @@ public class RoutesMappingTest {
     @Test
     public void servletExecutionContext() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/";
-        }};
+        when(request.getRequestPath()).thenReturn("/");
 
         Class<?> cls = sut.getHandlerClass(request, context);
         assertThat(cls.getName(), is(RoutesMappingTestAction.class.getName()));
@@ -237,10 +217,7 @@ public class RoutesMappingTest {
     @Test
     public void baseUri() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/action/RoutesMappingTest/controllerAction";
-        }};
+        when(request.getRequestPath()).thenReturn("/action/RoutesMappingTest/controllerAction");
 
         sut.setBaseUri("/action/");
 
@@ -257,10 +234,7 @@ public class RoutesMappingTest {
     @Test
     public void mappingNotFound() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/unknown/path";
-        }};
+        when(request.getRequestPath()).thenReturn("/unknown/path");
 
         try {
             sut.getHandlerClass(request, context);
@@ -308,26 +282,20 @@ public class RoutesMappingTest {
      * routes.xmlがfileプロトコル以外でも読み込めること。
      */
     @Test
-    public void protocolOfRoutesFileIsNotFile(final @Injectable URL mockUrl) throws Exception {
+    public void protocolOfRoutesFileIsNotFile() throws Exception {
+        final URL mockUrl = mock(URL.class);
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/RoutesMappingTest/controllerAction";
-        }};
+        when(request.getRequestPath()).thenReturn("/RoutesMappingTest/controllerAction");
 
         final RoutesMapping sut = new RoutesMapping();
         sut.setBasePackage("nablarch.integration.router");
 
         // zipプロトコルのURLを作れないため、モックを使う。
         // プロトコルだけ変更し、InputStreamは元のURLのものを使う。
-        final URL originalUrl = Deencapsulation.getField(sut, "routesUrl");
-        Deencapsulation.setField(sut, "routesUrl", mockUrl);
-        new Expectations() {{
-            mockUrl.getProtocol();
-            result = "zip";
-            mockUrl.openStream();
-            result = originalUrl.openStream();
-        }};
+        final URL originalUrl = ReflectionUtil.getFieldValue(sut, "routesUrl");
+        ReflectionUtil.setFieldValue(sut, "routesUrl", mockUrl);
+        when(mockUrl.getProtocol()).thenReturn("zip");
+        when(mockUrl.openStream()).thenReturn(originalUrl.openStream());
 
         sut.initialize();
 
@@ -346,12 +314,8 @@ public class RoutesMappingTest {
     @Test
     public void customMethodBinderFactory() throws Exception {
 
-        new Expectations() {{
-            request.getRequestPath();
-            result = "/method";
-            request.getMethod();
-            result = "GET";
-        }};
+        when(request.getRequestPath()).thenReturn("/method");
+        when(request.getMethod()).thenReturn("GET");
 
         final RoutesMapping sut = new RoutesMapping();
         sut.setMethodBinderFactory(new CustomMethodBinderFactory());
