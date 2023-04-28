@@ -19,11 +19,6 @@
     <version>6-NEXT-SNAPSHOT</version>
   </parent>
 
-  <properties>
-    <jmockit.version>1.43</jmockit.version>
-    <junit.additionalArgLine>-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar</junit.additionalArgLine>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>net.unit8</groupId>
