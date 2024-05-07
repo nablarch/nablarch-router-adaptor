@@ -1,5 +1,6 @@
 package nablarch.integration.router;
 
+import nablarch.core.util.annotation.Published;
 import net.unit8.http.router.Options;
 
 /**
@@ -7,6 +8,7 @@ import net.unit8.http.router.Options;
  *
  * @author Tanaka Tomoyuki
  */
+@Published(tag = "architect")
 public class PathOptions {
     private final String path;
     private final Options options;
