@@ -9,7 +9,6 @@ import nablarch.fw.web.servlet.HttpRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import org.junit.Test;
 
-import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.hamcrest.CoreMatchers.is;

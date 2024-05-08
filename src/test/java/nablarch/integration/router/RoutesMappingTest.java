@@ -14,7 +14,6 @@ import nablarch.fw.web.HttpRequest;
 import nablarch.fw.web.HttpResponse;
 import nablarch.fw.web.handler.MethodBinderFactory;
 import nablarch.fw.web.servlet.HttpRequestWrapper;
-import nablarch.fw.web.servlet.NablarchHttpServletRequestWrapper;
 import nablarch.fw.web.servlet.ServletExecutionContext;
 import nablarch.integration.router.sub.SubRoutesMappingTestAction;
 import net.unit8.http.router.RoutingException;
