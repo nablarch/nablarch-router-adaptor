@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
  * {@link NablarchControllerDetector}も合わせてテストします。
  * <p>
  * ルーティングライブラリの仕様は以下を見てください。<br>
- * https://github.com/kawasima/sastruts-advanced-routes/blob/master/README.ja.md
+ * https://github.com/kawasima/http-request-router/blob/master/README.ja.md
  */
 public class RoutesMappingTest {
 
