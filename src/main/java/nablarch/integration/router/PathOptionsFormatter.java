@@ -1,5 +1,7 @@
 package nablarch.integration.router;
 
+import nablarch.core.util.annotation.Published;
+
 import java.util.List;
 
 /**
@@ -7,6 +9,7 @@ import java.util.List;
  *
  * @author Tanaka Tomoyuki
  */
+@Published(tag = "architect")
 public interface PathOptionsFormatter {
 
     /**
