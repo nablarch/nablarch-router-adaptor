@@ -8,6 +8,7 @@ import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.Path;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,28 +41,78 @@ public class JaxRsResourceFinder {
 
     private static class ResourceClassHandler implements ClassHandler {
         private final ClassLoader classLoader = this.getClass().getClassLoader();
-        private final List<JaxRsResource> jaxRsResourceList = new ArrayList<JaxRsResource>();
+        private final List<JaxRsResource> jaxRsResourceList = new ArrayList<>();
 
         @Override
         public void process(String packageName, String className) {
             try {
-                Class<?> clazz = classLoader.loadClass(packageName + "." + className);
+                Class<?> actualClass = classLoader.loadClass(packageName + "." + className);
 
-                if (isJaxRsResource(clazz)) {
-                    List<Method> resourceMethodList = findResourceMethods(clazz);
-                    jaxRsResourceList.add(new JaxRsResource(clazz, resourceMethodList));
+                if (Modifier.isAbstract(actualClass.getModifiers()) || actualClass.isInterface()) {
+                    // 抽象クラスやインターフェースは除外
+                    return;
+                }
+
+                Class<?> jaxRsResourceClass = findJaxRsResourceClass(actualClass);
+
+                if (jaxRsResourceClass != null) {
+                    // JAX-RSリソースクラスと判定されたClassクラスに定義されているメソッドをリソースメソッドとして扱う。
+                    // それ以外の継承/実装関係にあるクラスのリソースメソッドは無視される
+                    List<Method> resourceMethodList = findResourceMethods(jaxRsResourceClass);
+
+                    // JAX-RSリソースクラスそのものは探索対象のパッケージ配下にあった具象クラスとする
+                    jaxRsResourceList.add(new JaxRsResource(actualClass, jaxRsResourceClass, resourceMethodList));
                 }
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
 
+        /**
+         * 指定された{@code clazz}がJAX-RSのリソースクラスであれば、そのクラスを返す。そうでない場合、親クラスや
+         * インターフェースを再帰的に探索してJAX-RSのリソースクラスを探す。
+         * <p>
+         * 指定されたクラスが{@link Object}以外の親クラスおよびインターフェースの両方を拡張している場合は、
+         * JAX-RS仕様の「Annotations on a super-class take precedence over those on an implemented interface.」
+         * <a href="https://jakarta.ee/specifications/restful-ws/3.1/jakarta-restful-ws-spec-3.1.html#annotationinheritance">Annotation Inheritance</a>
+         * に従い親クラスを優先して探索する。
+         *
+         * @param clazz 探索対象のクラス
+         * @return 見つかったJAX-RSリソースクラス、見つからなかった場合は{@code null}
+         */
+        private Class<?> findJaxRsResourceClass(Class<?> clazz) {
+            if (isJaxRsResource(clazz)) {
+                return clazz;
+            } else {
+                // 親クラスを優先して探索する
+                Class<?> superClass = clazz.getSuperclass();
+                if (!superClass.equals(Object.class)) {
+                    return findJaxRsResourceClass(superClass);
+                }
+
+                // インタフェースを検索する
+                for (Class<?> interfaceClass : clazz.getInterfaces()) {
+                    if (isJaxRsResource(interfaceClass)) {
+                        return interfaceClass;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /**
+         * 指定された{@link Class}がJAX-RSリソースクラスの場合{@code true}を返す。
+         *
+         * @param clazz 確認対象のクラス
+         * @return JAX-RSリソースクラスの場合{@code true}
+         */
         private boolean isJaxRsResource(Class<?> clazz) {
             return clazz.isAnnotationPresent(Path.class);
         }
 
         private List<Method> findResourceMethods(Class<?> clazz) {
-            List<Method> methodList = new ArrayList<Method>();
+            List<Method> methodList = new ArrayList<>();
             for (Method method : clazz.getDeclaredMethods()) {
                 if (isAnnotatedByHttpMethod(method)) {
                     methodList.add(method);

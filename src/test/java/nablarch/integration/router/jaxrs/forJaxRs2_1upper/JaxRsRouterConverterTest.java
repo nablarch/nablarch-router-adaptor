@@ -1,23 +1,23 @@
 package nablarch.integration.router.jaxrs.forJaxRs2_1upper;
 
-import nablarch.integration.router.PathOptions;
-import nablarch.integration.router.jaxrs.JaxRsResource;
-import nablarch.integration.router.jaxrs.JaxRsRouterConverter;
-import org.junit.Test;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import nablarch.integration.router.PathOptions;
+import nablarch.integration.router.jaxrs.JaxRsResource;
+import nablarch.integration.router.jaxrs.JaxRsRouterConverter;
+import org.junit.Test;
 
 public class JaxRsRouterConverterTest {
     @Test
@@ -26,24 +26,28 @@ public class JaxRsRouterConverterTest {
         class TestResource {
             @GET
             @Path("get-method")
-            void get() {}
+            void get() {
+            }
 
             @POST
             @Path("post-method")
-            void post() {}
+            void post() {
+            }
 
             @PUT
             @Path("put-method")
-            void put() {}
+            void put() {
+            }
 
             @PATCH
             @Path("patch-method")
-            void patch() {}
+            void patch() {
+            }
         }
 
         JaxRsRouterConverter sut = new JaxRsRouterConverter("test");
 
-        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, "get", "post", "put", "patch"));
+        List<PathOptions> pathOptionsList = sut.parse(jaxRsResource(TestResource.class, TestResource.class, "get", "post", "put", "patch"));
 
         assertThat(pathOptionsList, containsInAnyOrder(
                 hasProperty("path", is("test/test-resource/get-method")),
@@ -53,8 +57,8 @@ public class JaxRsRouterConverterTest {
         ));
     }
 
-    private JaxRsResource jaxRsResource(Class<?> clazz, String... methodNames) {
-        return new JaxRsResource(clazz, methods(clazz, methodNames));
+    private JaxRsResource jaxRsResource(Class<?> actionClass, Class<?> resourceClass, String... methodNames) {
+        return new JaxRsResource(actionClass, resourceClass, methods(resourceClass, methodNames));
     }
 
     private List<Method> methods(Class<?> clazz, String... methodNames) {
