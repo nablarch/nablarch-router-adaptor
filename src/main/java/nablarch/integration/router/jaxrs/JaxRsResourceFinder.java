@@ -86,8 +86,8 @@ public class JaxRsResourceFinder {
             } else {
                 // 親クラスを優先して探索する
                 Class<?> superClass = clazz.getSuperclass();
-                if (!superClass.equals(Object.class)) {
-                    return findJaxRsResourceClass(superClass);
+                if (isJaxRsResource(superClass)) {
+                    return superClass;
                 }
 
                 // インタフェースを検索する
@@ -95,6 +95,10 @@ public class JaxRsResourceFinder {
                     if (isJaxRsResource(interfaceClass)) {
                         return interfaceClass;
                     }
+                }
+
+                if (!superClass.equals(Object.class)) {
+                    return findJaxRsResourceClass(superClass);
                 }
 
                 return null;

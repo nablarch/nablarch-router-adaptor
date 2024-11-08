@@ -31,6 +31,7 @@ import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheri
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassExtendsInterfaceImplementsParent;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassExtendsParent;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassExtendsParentImplementsInterface;
+import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassExtendsPlainParentImplementsInterface;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassIgnoreAppendMethod;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassImplementsInterface;
 import nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations.ResourceClassPreferParent;
@@ -131,7 +132,7 @@ public class JaxRsResourceFinderTest {
     public void testResourceClassInherit() {
         List<JaxRsResource> jaxRsResourceList = sut.find("nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations");
 
-        assertThat(jaxRsResourceList, hasSize(6));
+        assertThat(jaxRsResourceList, hasSize(7));
 
         Map<Class<?>, JaxRsResource> jaxRsResources = jaxRsResourceList
                 .stream()
@@ -153,6 +154,10 @@ public class JaxRsResourceFinderTest {
         assertThat(jaxRsResources.get(ResourceClassExtendsInterfaceImplementsParent.class).getActionClass(), equalTo(ResourceClassExtendsInterfaceImplementsParent.class));
         assertThat(jaxRsResources.get(ResourceClassExtendsInterfaceImplementsParent.class).getResourceClass(), equalTo(ParentResourceClassImplementsInterface.class));
 
+        // リソースクラスではない親クラスを継承し、リソースクラスであるインターフェースを実装している場合は、インターフェースがリソースクラスとなる
+        assertThat(jaxRsResources.get(ResourceClassExtendsPlainParentImplementsInterface.class).getActionClass(), equalTo(ResourceClassExtendsPlainParentImplementsInterface.class));
+        assertThat(jaxRsResources.get(ResourceClassExtendsPlainParentImplementsInterface.class).getResourceClass(), equalTo(ResourceInterface.class));
+
         // ActionクラスにJAX-RSアノテーションが付与されている場合は、Actionクラスがリソースクラスとなる
         assertThat(jaxRsResources.get(ResourceClassPreferParent.class).getActionClass(), equalTo(ResourceClassPreferParent.class));
         assertThat(jaxRsResources.get(ResourceClassPreferParent.class).getResourceClass(), equalTo(ResourceClassPreferParent.class));
@@ -166,7 +171,7 @@ public class JaxRsResourceFinderTest {
     public void testResourceMethodInherit() {
         List<JaxRsResource> jaxRsResourceList = sut.find("nablarch.integration.router.jaxrs.test.JaxRsResourceFinderTest.testInheritAnnotations");
 
-        assertThat(jaxRsResourceList, hasSize(6));
+        assertThat(jaxRsResourceList, hasSize(7));
 
         Map<Class<?>, JaxRsResource> jaxRsResources = jaxRsResourceList
                 .stream()
@@ -239,6 +244,24 @@ public class JaxRsResourceFinderTest {
         assertThat(resourceClassExtendsInterfaceImplementsParentMethods.get(0).getAnnotation(Path.class).value(), is("/get-by-parent"));
         assertThat(resourceClassExtendsInterfaceImplementsParentMethods.get(1).getName(), is("simpleGet"));
         assertThat(resourceClassExtendsInterfaceImplementsParentMethods.get(1).getAnnotation(GET.class), notNullValue());
+
+        // リソースクラスではない親クラスを継承し、リソースクラスであるインターフェースを実装している場合は、インターフェースがリソースクラスとなる
+        JaxRsResource resourceClassExtendsPlainParentImplementsInterface = jaxRsResources.get(ResourceClassExtendsPlainParentImplementsInterface.class);
+        assertThat(resourceClassExtendsPlainParentImplementsInterface.getResourceClass().getAnnotation(Path.class).value(), is("/interface-path"));
+
+        List<Method> resourceClassExtendsPlainParentImplementsInterfaceMethods =
+                resourceClassExtendsPlainParentImplementsInterface
+                        .getResourceMethodList()
+                        .stream()
+                        .sorted(Comparator.comparing(Method::getName))
+                        .toList();
+        assertThat(resourceClassExtendsPlainParentImplementsInterfaceMethods, hasSize(2));
+        assertThat(resourceClassExtendsPlainParentImplementsInterfaceMethods.get(0).getName(), is("getWithPath"));
+        assertThat(resourceClassExtendsPlainParentImplementsInterfaceMethods.get(0).getAnnotation(GET.class), notNullValue());
+        assertThat(resourceClassExtendsPlainParentImplementsInterfaceMethods.get(0).getAnnotation(Path.class).value(), is("/get-by-interface"));
+        assertThat(resourceClassExtendsPlainParentImplementsInterfaceMethods.get(1).getName(), is("simpleGet"));
+        assertThat(resourceClassExtendsPlainParentImplementsInterfaceMethods.get(1).getAnnotation(GET.class), notNullValue());
+
 
         // ActionクラスにJAX-RSアノテーションが付与されている場合は、Actionクラスのメソッドがリソースメソッドとなる
         JaxRsResource resourceClassPreferParent = jaxRsResources.get(ResourceClassPreferParent.class);
