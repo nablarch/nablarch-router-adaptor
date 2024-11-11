@@ -46,14 +46,14 @@ public class JaxRsResourceFinder {
         @Override
         public void process(String packageName, String className) {
             try {
-                Class<?> actualClass = classLoader.loadClass(packageName + "." + className);
+                Class<?> clazz = classLoader.loadClass(packageName + "." + className);
 
-                if (Modifier.isAbstract(actualClass.getModifiers()) || actualClass.isInterface()) {
+                if (Modifier.isAbstract(clazz.getModifiers()) || clazz.isInterface()) {
                     // 抽象クラスやインターフェースは除外
                     return;
                 }
 
-                Class<?> jaxRsResourceClass = findJaxRsResourceClass(actualClass);
+                Class<?> jaxRsResourceClass = findJaxRsResourceClass(clazz);
 
                 if (jaxRsResourceClass != null) {
                     // JAX-RSリソースクラスと判定されたClassクラスに定義されているメソッドをリソースメソッドとして扱う。
@@ -61,7 +61,7 @@ public class JaxRsResourceFinder {
                     List<Method> resourceMethodList = findResourceMethods(jaxRsResourceClass);
 
                     // JAX-RSリソースクラスそのものは探索対象のパッケージ配下にあった具象クラスとする
-                    jaxRsResourceList.add(new JaxRsResource(actualClass, jaxRsResourceClass, resourceMethodList));
+                    jaxRsResourceList.add(new JaxRsResource(clazz, jaxRsResourceClass, resourceMethodList));
                 }
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
