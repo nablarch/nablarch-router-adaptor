@@ -46,11 +46,12 @@ public class JaxRsRouterConverter {
      */
     public List<PathOptions> parse(JaxRsResource jaxRsResource) {
         List<PathOptions> pathOptionsList = new ArrayList<PathOptions>();
+        Class<?> actionClass = jaxRsResource.getActionClass();
         Class<?> resourceClass = jaxRsResource.getResourceClass();
 
         for (Method resourceMethod : jaxRsResource.getResourceMethodList()) {
             Options options = Options.newInstance();
-            options.put("controller", resourceClass.getName());
+            options.put("controller", actionClass.getName());
             options.put("action", resourceMethod.getName());
             options.put("conditions", buildConditions(resourceMethod));
             
