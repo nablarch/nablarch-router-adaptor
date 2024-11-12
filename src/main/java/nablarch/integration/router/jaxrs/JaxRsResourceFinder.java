@@ -48,8 +48,8 @@ public class JaxRsResourceFinder {
             try {
                 Class<?> clazz = classLoader.loadClass(packageName + "." + className);
 
-                if (Modifier.isAbstract(clazz.getModifiers()) || clazz.isInterface()) {
-                    // 抽象クラスやインターフェースは除外
+                if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+                    // インターフェースや抽象クラスは除外
                     return;
                 }
 
