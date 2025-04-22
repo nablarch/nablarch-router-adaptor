@@ -21,7 +21,7 @@ import java.util.Map;
 
 /**
  * Routes定義ファイルをベースにActionメソッドを特定するハンドラ。
- *
+ * <p>
  * 本ハンドラを使用することで、自由なURLを使用することができる。
  *
  * @author kawasima
@@ -57,11 +57,11 @@ public class RoutesMapping
 
     /**
      * Routes定義にしたがい、リクエストのパスからハンドラのクラスを返す。
-     *
+     * <p>
      * リクエストパスから処理対象のコントローラが特定できない場合には、
      * 404を表す{@link HttpErrorResponse}を送出する。
      *
-     * @param request リクエスト
+     * @param request          リクエスト
      * @param executionContext 実行コンテキスト
      * @return Handlerクラス
      * @throws ClassNotFoundException クラス不明例外
@@ -160,6 +160,16 @@ public class RoutesMapping
     }
 
     /**
+     * Routes定義ファイルのチェック間隔を秒単位で指定する。
+     * <p>
+     * 本値に0以上の値を設定した場合は、以下タイミングで再読み込みを行う。
+     * <ul>
+     *   <li>最後にRoutes定義ファイルを読み込んでから、本値(秒)の時間経過していること</li>
+     *   <li>Routes定義ファイルが変更されていた</li>
+     *   <li>上記を満たした状態で、URLとActionのマッピング処理が発生したとき</li>
+     * </ul>
+     * 本値に負の値を設定した場合は、Routes定義ファイルのチェックと再読み込みは行わない。
+     *
      * @param checkInterval インターバル
      */
     public void setCheckInterval(final long checkInterval) {
