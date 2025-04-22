@@ -168,6 +168,7 @@ public class RoutesMapping
      *   <li>Routes定義ファイルが変更されていた</li>
      *   <li>上記を満たした状態で、URLとActionのマッピング処理が発生したとき</li>
      * </ul>
+     * 本値に負の値を設定した場合は、Routes定義ファイルのチェックと再読み込みは行わない。
      *
      * @param checkInterval インターバル
      */
